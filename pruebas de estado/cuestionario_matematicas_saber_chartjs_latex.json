@@ -1,0 +1,2697 @@
+{
+  "titulo": "Cuestionario de Matemáticas -- Prueba Saber",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.1",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas dentro de textos, preguntas, opciones, tablas y explicaciones se delimitan con LaTeX.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON; los valores matemáticos o unidades dentro de las tablas se escriben en LaTeX cuando aplica.",
+    "graficos": "Los gráficos y figuras están representados como configuraciones de Chart.js. Las figuras que Chart.js no dibuja de forma nativa usan el plugin canvasShapesPlugin incluido en este mismo JSON.",
+    "respuestas": "claveFuente proviene de la clave comentada en el archivo original; claveValidada es la clave revisada matemáticamente cuando aplica.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Para moneda dentro de LaTeX se usa \\$."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar diagramas de Venn, figuras geométricas, etiquetas y líneas de dimensión sobre un canvas de Chart.js.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n    const dy = (value) => Math.abs(y(value) - y(0));\n\n    function applyStyle(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n\n    function drawArrowHead(x1, y1, x2, y2, size = 6) {\n      const angle = Math.atan2(y2 - y1, x2 - x1);\n      ctx.beginPath();\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));\n      ctx.stroke();\n    }\n\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      applyStyle(shape);\n\n      if (shape.type === \"circle\") {\n        ctx.beginPath();\n        ctx.arc(x(shape.x), y(shape.y), dx(shape.r), 0, Math.PI * 2);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"rectangle\") {\n        const left = x(shape.x);\n        const top = y(shape.y + shape.height);\n        const width = x(shape.x + shape.width) - x(shape.x);\n        const height = y(shape.y) - y(shape.y + shape.height);\n        ctx.beginPath();\n        ctx.rect(left, top, width, height);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"polygon\") {\n        ctx.beginPath();\n        shape.points.forEach((point, index) => {\n          const px = x(point[0]);\n          const py = y(point[1]);\n          if (index === 0) ctx.moveTo(px, py);\n          else ctx.lineTo(px, py);\n        });\n        ctx.closePath();\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"line\") {\n        ctx.beginPath();\n        ctx.moveTo(x(shape.x1), y(shape.y1));\n        ctx.lineTo(x(shape.x2), y(shape.y2));\n        ctx.stroke();\n      }\n\n      if (shape.type === \"dimensionLine\") {\n        const x1 = x(shape.x1);\n        const y1 = y(shape.y1);\n        const x2 = x(shape.x2);\n        const y2 = y(shape.y2);\n        ctx.beginPath();\n        ctx.moveTo(x1, y1);\n        ctx.lineTo(x2, y2);\n        ctx.stroke();\n        if (shape.arrows !== false) {\n          drawArrowHead(x2, y2, x1, y1, shape.arrowSize ?? 6);\n          drawArrowHead(x1, y1, x2, y2, shape.arrowSize ?? 6);\n        }\n        if (shape.label) {\n          ctx.fillStyle = shape.labelColor ?? shape.stroke ?? \"#000000\";\n          ctx.fillText(shape.label, (x1 + x2) / 2, (y1 + y2) / 2 + (shape.labelOffsetY ?? -10));\n        }\n      }\n\n      if (shape.type === \"ellipseArc\") {\n        const centerX = x(shape.x);\n        const centerY = y(shape.y);\n        const radiusX = dx(shape.radiusX);\n        const radiusY = dy(shape.radiusY);\n        ctx.beginPath();\n        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, shape.startAngle ?? 0, shape.endAngle ?? Math.PI, shape.anticlockwise ?? false);\n        if (shape.closePath) {\n          ctx.lineTo(x(shape.closeToX ?? (shape.x - shape.radiusX)), y(shape.closeToY ?? shape.y));\n          ctx.closePath();\n        }\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"text\") {\n        ctx.fillStyle = shape.fill ?? \"#000000\";\n        ctx.fillText(shape.text, x(shape.x), y(shape.y));\n      }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la siguiente tabla se registran las temperaturas máximas, en grados Celsius, de una ciudad durante seis días de la semana."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Temperaturas máximas durante seis días",
+          "columnas": [
+            "Día",
+            "Temperatura máxima \\((^\\circ\\text{C})\\)"
+          ],
+          "filas": [
+            [
+              "Lunes",
+              "\\(18\\)"
+            ],
+            [
+              "Martes",
+              "\\(22\\)"
+            ],
+            [
+              "Miércoles",
+              "\\(20\\)"
+            ],
+            [
+              "Jueves",
+              "\\(24\\)"
+            ],
+            [
+              "Viernes",
+              "\\(22\\)"
+            ],
+            [
+              "Sábado",
+              "\\(18\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál es el promedio de las temperaturas máximas registradas durante esos seis días?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(18\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(20\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(21\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(24\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(\\frac{18 + 22 + 20 + 24 + 22 + 18}{6} = \\frac{124}{6} \\approx 20{,}67\\); redondeando a la opción disponible, \\(21\\)."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la tabla se registran las notas obtenidas por cinco estudiantes en tres materias durante el primer período escolar. Un profesor afirma que el promedio de notas de Matemáticas del grupo es \\(3{,}68\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Notas del primer período",
+          "columnas": [
+            "Estudiante",
+            "Matemáticas",
+            "Ciencias",
+            "Español"
+          ],
+          "filas": [
+            [
+              "Andrés",
+              "\\(3{,}5\\)",
+              "\\(4{,}0\\)",
+              "\\(3{,}8\\)"
+            ],
+            [
+              "Beatriz",
+              "\\(4{,}2\\)",
+              "\\(3{,}9\\)",
+              "\\(4{,}5\\)"
+            ],
+            [
+              "Carlos",
+              "\\(3{,}0\\)",
+              "\\(3{,}5\\)",
+              "\\(3{,}2\\)"
+            ],
+            [
+              "Diana",
+              "\\(4{,}8\\)",
+              "\\(4{,}6\\)",
+              "\\(4{,}9\\)"
+            ],
+            [
+              "Esteban",
+              "\\(2{,}9\\)",
+              "\\(3{,}1\\)",
+              "\\(3{,}0\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Es verdadera esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque la nota más alta en Matemáticas es \\(4{,}8\\) y la más baja es \\(2{,}9\\), y su promedio es \\(3{,}68\\)."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque el promedio de las notas de Matemáticas se calcula sumando las cinco notas y dividiendo entre \\(5\\), y ese resultado es diferente de \\(3{,}68\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque sumando las cinco notas de Matemáticas y dividiendo entre \\(5\\) se obtiene \\(3{,}68\\)."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque para calcular el promedio se deben tener en cuenta las notas de las tres materias."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(\\frac{3{,}5 + 4{,}2 + 3{,}0 + 4{,}8 + 2{,}9}{5} = \\frac{18{,}4}{5} = 3{,}68\\)."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un colegio se realizó una encuesta a \\(80\\) estudiantes para conocer qué actividades extraescolares practican. El diagrama muestra los resultados considerando tres actividades: fútbol, música y lectura."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q3_diagrama_venn_actividades",
+          "descripcion": "Diagrama de Venn de actividades extraescolares.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.35,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "circle",
+                      "x": 36,
+                      "y": 58,
+                      "r": 24,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(255,255,255,0)"
+                    },
+                    {
+                      "type": "circle",
+                      "x": 64,
+                      "y": 58,
+                      "r": 24,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(255,255,255,0)"
+                    },
+                    {
+                      "type": "circle",
+                      "x": 50,
+                      "y": 34,
+                      "r": 24,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(255,255,255,0)"
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 88,
+                      "text": "Fútbol",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 88,
+                      "text": "Música",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 8,
+                      "text": "Lectura",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 27,
+                      "y": 63,
+                      "text": "18",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 67,
+                      "text": "7",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 73,
+                      "y": 63,
+                      "text": "12",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 39,
+                      "y": 43,
+                      "text": "4",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 61,
+                      "y": 43,
+                      "text": "3",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 23,
+                      "text": "16",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 90,
+                      "y": 25,
+                      "text": "20",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 90,
+                      "y": 12,
+                      "text": "Diagrama",
+                      "font": "bold 13px Arial",
+                      "fill": "#000000"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuántos estudiantes practican fútbol en total?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(18\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(29\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(32\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(52\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Se suman todas las regiones dentro del círculo de fútbol: \\(18 + 7 + 4 + 3 = 32\\)."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de mensajería ofrece dos tipos de envío según el peso del paquete, y aclara que al precio base se debe agregar el IVA del \\(19\\%\\).",
+        "Un cliente envía \\(3\\) paquetes de menos de \\(5\\ \\text{kg}\\) y \\(2\\) paquetes de \\(5\\ \\text{kg}\\) o más. Quiere calcular el valor total a pagar con la fórmula: \\[\\text{Total} = (3 \\times 12.000 + 2 \\times 20.000)(1 + z)\\] donde \\(z\\) es la tasa de IVA."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tipos de envío y precio base",
+          "columnas": [
+            "Tipo de envío",
+            "Precio base"
+          ],
+          "filas": [
+            [
+              "Nacional (menos de \\(5\\ \\text{kg}\\))",
+              "\\(\\$12.000\\)"
+            ],
+            [
+              "Nacional (\\(5\\ \\text{kg}\\) o más)",
+              "\\(\\$20.000\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Sobre el valor total a pagar, ¿cuál de las siguientes afirmaciones es verdadera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Es posible calcular el total, ya que el precio de cada tipo de envío está definido y el IVA es del \\(19\\%\\)."
+        },
+        {
+          "id": "B",
+          "texto": "No es posible calcular el total, porque falta saber el peso exacto de cada paquete."
+        },
+        {
+          "id": "C",
+          "texto": "Es posible calcular el total, porque solo es necesario multiplicar la cantidad de paquetes por el precio base."
+        },
+        {
+          "id": "D",
+          "texto": "No es posible calcular el total, porque el IVA puede variar dependiendo del departamento de destino, y este no se conoce."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Los precios base y la tasa de IVA están definidos; no se requiere conocer el peso exacto porque ya se clasificaron los paquetes por categoría."
+      }
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una clase hay \\(8\\) estudiantes: \\(5\\) mujeres y \\(3\\) hombres. El profesor quiere escoger parejas de trabajo de \\(2\\) estudiantes. En la tabla, \\(P\\), \\(Q\\) y \\(R\\) representan la cantidad de formas de escoger cada tipo de pareja."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tipos de pareja",
+          "columnas": [
+            "Tipo de pareja",
+            "Dos mujeres",
+            "Un hombre y una mujer",
+            "Dos hombres"
+          ],
+          "filas": [
+            [
+              "Cantidad de formas",
+              "\\(P\\)",
+              "\\(Q\\)",
+              "\\(R\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuáles valores se deben conocer para determinar la cantidad total de formas en que se puede escoger una pareja donde haya, al menos, una mujer?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solamente \\(P\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Solamente \\(P\\) y \\(Q\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Solamente \\(Q\\) y \\(R\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Solamente \\(R\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Una pareja con al menos una mujer puede ser de dos mujeres, \\(P\\), o de un hombre y una mujer, \\(Q\\)."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una familia quiere ahorrar para comprar un televisor que cuesta \\(\\$1.200.000\\). Deciden ahorrar \\(\\$25.000\\) el primer mes y triplicar el ahorro cada mes.",
+        "Para calcular en cuántos meses completarán el ahorro, un miembro de la familia propone este procedimiento: Paso 1. Dividir \\(\\$1.200.000\\) entre \\(\\$25.000\\). Paso 2. Encontrar el valor de \\(n\\) tal que la suma \\(3^0 + 3^1 + \\cdots + 3^n\\) sea igual al resultado del paso 1. Paso 3. Sumar \\(1\\) al valor de \\(n\\) encontrado en el paso 2."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuántos meses debe ahorrar la familia para comprar el televisor?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(4\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(5\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "D",
+        "estado": "inconsistencia_detectada",
+        "explicacion": "La clave comentada en la fuente marca C, pero al validar: \\(4\\) meses suman \\(\\$1.000.000\\) y no alcanzan \\(\\$1.200.000\\); \\(5\\) meses suman \\(\\$3.025.000\\). La clave matemática sería D. Además, el paso 2 pide una igualdad con \\(48\\), pero la suma \\(1 + 3 + 9 + \\cdots\\) no toma exactamente ese valor."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Laura tiene un salario mensual de \\(\\$1.500.000\\) y quiere ahorrar el \\(4\\%\\) cada mes. Para calcular su ahorro mensual realiza el siguiente razonamiento: \\(15 \\times 4 = 60\\), y como \\(1.500.000\\) tiene \\(5\\) ceros, considera solo \\(3\\), obteniendo el número \\(1.000\\). Con los dos valores forma el número \\(60.000\\). Entonces afirma que ahorrará \\(\\$60.000\\) al mes.",
+        "Tomás quiere aplicar la misma estrategia. Él gana \\(\\$2.200.000\\) al mes y quiere ahorrar el \\(5\\%\\)."
+      ],
+      "materiales": [],
+      "pregunta": "Si ahorra durante \\(8\\) meses consecutivos, ¿cuánto dinero habrá ahorrado en total?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\$880.000\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\$800.000\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\$770.000\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\$440.000\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "El \\(5\\%\\) de \\(\\$2.200.000\\) es \\(\\$110.000\\). En \\(8\\) meses ahorra \\(\\$110.000 \\times 8 = \\$880.000\\)."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra el número de vehículos que pasaron por un peaje durante cinco horas consecutivas en un día festivo.",
+        "La siguiente gráfica representa la misma información."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Vehículos por hora",
+          "columnas": [
+            "Hora",
+            "8:00",
+            "9:00",
+            "10:00",
+            "11:00",
+            "12:00"
+          ],
+          "filas": [
+            [
+              "Vehículos",
+              "\\(320\\)",
+              "\\(410\\)",
+              "\\(395\\)",
+              "\\(430\\)",
+              "\\(285\\)"
+            ]
+          ]
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q8_vehiculos_peaje_linea",
+          "descripcion": "Gráfica de líneas de vehículos por hora.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "8:00",
+                "9:00",
+                "10:00",
+                "11:00",
+                "12:00"
+              ],
+              "datasets": [
+                {
+                  "label": "Vehículos",
+                  "data": [
+                    320,
+                    410,
+                    395,
+                    430,
+                    285
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 4,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.67,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Hora"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "max": 460,
+                  "ticks": {
+                    "stepSize": 100
+                  },
+                  "title": {
+                    "display": true,
+                    "text": "Vehículos"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "De acuerdo con lo anterior, ¿cuál de las siguientes afirmaciones es falsa?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Con la información de la tabla se puede calcular el total de vehículos que pasaron por el peaje en las cinco horas."
+        },
+        {
+          "id": "B",
+          "texto": "Con la gráfica se puede identificar en qué hora pasaron más vehículos."
+        },
+        {
+          "id": "C",
+          "texto": "Con la gráfica se puede conocer el número exacto de vehículos de cada hora sin consultar la tabla."
+        },
+        {
+          "id": "D",
+          "texto": "Con la tabla se puede calcular el promedio de vehículos por hora."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La gráfica permite observar tendencias y aproximaciones, pero el número exacto de cada hora se obtiene de la tabla."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una tienda registró las ventas diarias de tres productos durante una semana. La siguiente tabla muestra el número de unidades vendidas."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Ventas diarias por producto",
+          "columnas": [
+            "Día",
+            "Producto A",
+            "Producto B",
+            "Producto C"
+          ],
+          "filas": [
+            [
+              "Lunes",
+              "\\(12\\)",
+              "\\(8\\)",
+              "\\(15\\)"
+            ],
+            [
+              "Martes",
+              "\\(10\\)",
+              "\\(14\\)",
+              "\\(9\\)"
+            ],
+            [
+              "Miércoles",
+              "\\(15\\)",
+              "\\(11\\)",
+              "\\(12\\)"
+            ],
+            [
+              "Jueves",
+              "\\(8\\)",
+              "\\(16\\)",
+              "\\(10\\)"
+            ],
+            [
+              "Viernes",
+              "\\(20\\)",
+              "\\(13\\)",
+              "\\(18\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál fue el producto con mayor promedio de ventas diarias durante la semana?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Producto A, con un promedio de \\(13\\) unidades diarias."
+        },
+        {
+          "id": "B",
+          "texto": "Producto B, con un promedio de \\(12{,}4\\) unidades diarias."
+        },
+        {
+          "id": "C",
+          "texto": "Producto C, con un promedio de \\(12{,}8\\) unidades diarias."
+        },
+        {
+          "id": "D",
+          "texto": "Producto A, con un promedio de \\(12{,}8\\) unidades diarias."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Producto A: \\(65/5 = 13\\); Producto B: \\(62/5 = 12{,}4\\); Producto C: \\(64/5 = 12{,}8\\)."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa quiere conocer el nivel de satisfacción de sus clientes en todo el país. Para ello, contrata una agencia que realiza encuestas telefónicas a \\(500\\) personas de la ciudad capital del país."
+      ],
+      "materiales": [],
+      "pregunta": "¿Por qué el resultado de esta encuesta puede no representar la opinión de todos los clientes de la empresa?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Porque la única forma de obtener resultados precisos es encuestar a todos los clientes del país."
+        },
+        {
+          "id": "B",
+          "texto": "Porque la muestra solo representa la opinión de los clientes de la ciudad capital, mas no la de los clientes del resto del país."
+        },
+        {
+          "id": "C",
+          "texto": "Porque \\(500\\) encuestados es un número muy pequeño para cualquier tipo de estudio estadístico."
+        },
+        {
+          "id": "D",
+          "texto": "Porque las encuestas telefónicas siempre producen resultados incorrectos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La muestra se tomó solo en la ciudad capital y puede no representar a clientes de otras regiones del país."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la tabla se muestra la distancia entre tres ciudades y sus respectivas unidades de medida. Para calcular la distancia total del recorrido A-B-C-A, un estudiante suma: \\[350 + 80.000 + 2 = 80.352\\ \\text{km}\\]"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Distancias entre ciudades",
+          "columnas": [
+            "Trayecto",
+            "Distancia"
+          ],
+          "filas": [
+            [
+              "Ciudad A - Ciudad B",
+              "\\(350\\ \\text{km}\\)"
+            ],
+            [
+              "Ciudad B - Ciudad C",
+              "\\(80.000\\ \\text{m}\\)"
+            ],
+            [
+              "Ciudad C - Ciudad A",
+              "\\(2\\ \\text{Mm}\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Esta solución es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Correcta; se suman los tres valores y se usa la unidad que más aparece."
+        },
+        {
+          "id": "B",
+          "texto": "Incorrecta; el resultado debe estar en metros, ya que la distancia más grande está en metros."
+        },
+        {
+          "id": "C",
+          "texto": "Incorrecta; como los datos están en unidades diferentes, no se pueden sumar directamente."
+        },
+        {
+          "id": "D",
+          "texto": "Correcta; el resultado se calcula bien y se usa la unidad del primer valor."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Antes de sumar distancias se deben convertir todas a la misma unidad."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un arquitecto diseñó una pared rectangular que quiere dividir en tres regiones: la región 1, con forma de triángulo rectángulo; la región 2, con forma de semicírculo; y la región 3, que ocupa el resto de la pared.",
+        "Para calcular el área de la región 3, el arquitecto realizó el siguiente procedimiento: Paso 1. Calculó el área total de la pared: \\(8\\ \\text{m} \\times 5\\ \\text{m}\\). Paso 2. Calculó el área de la región 1: \\(3\\ \\text{m} \\times 3\\ \\text{m}\\). Paso 3. Calculó el área de la región 2: \\(\\pi \\times 4\\ \\text{m}^2\\) y dividió entre \\(2\\). Paso 4. Al resultado del paso 1 le restó los resultados del paso 2 y del paso 3."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q12_pared_regiones",
+          "descripcion": "Figura de la pared rectangular con triángulo, semicírculo y región restante.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 70
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "rectangle",
+                      "x": 10,
+                      "y": 10,
+                      "width": 70,
+                      "height": 45,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "transparent"
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          10,
+                          55
+                        ],
+                        [
+                          36.25,
+                          55
+                        ],
+                        [
+                          10,
+                          28
+                        ]
+                      ],
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(128,128,128,0.20)"
+                    },
+                    {
+                      "type": "ellipseArc",
+                      "x": 62.5,
+                      "y": 19,
+                      "radiusX": 17.5,
+                      "radiusY": 18,
+                      "startAngle": 0,
+                      "endAngle": 3.1416,
+                      "anticlockwise": true,
+                      "closePath": true,
+                      "closeToX": 80,
+                      "closeToY": 19,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(128,128,128,0.50)"
+                    },
+                    {
+                      "type": "text",
+                      "x": 19,
+                      "y": 46,
+                      "text": "Región 1",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 62.5,
+                      "y": 30,
+                      "text": "Región 2",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 43,
+                      "y": 18,
+                      "text": "Región 3",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "dimensionLine",
+                      "x1": 10,
+                      "y1": 61,
+                      "x2": 36.25,
+                      "y2": 61,
+                      "label": "3 m",
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "labelOffsetY": -10
+                    },
+                    {
+                      "type": "dimensionLine",
+                      "x1": 4,
+                      "y1": 28,
+                      "x2": 4,
+                      "y2": 55,
+                      "label": "3 m",
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "labelOffsetY": -10
+                    },
+                    {
+                      "type": "dimensionLine",
+                      "x1": 45,
+                      "y1": 4,
+                      "x2": 80,
+                      "y2": 4,
+                      "label": "4 m",
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "labelOffsetY": 15
+                    },
+                    {
+                      "type": "dimensionLine",
+                      "x1": 86,
+                      "y1": 10,
+                      "x2": 86,
+                      "y2": 55,
+                      "label": "5 m",
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "labelOffsetY": -10
+                    },
+                    {
+                      "type": "dimensionLine",
+                      "x1": 10,
+                      "y1": 4,
+                      "x2": 80,
+                      "y2": 4,
+                      "label": "8 m",
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "labelOffsetY": 15
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿En cuál paso hay un error y cómo se puede corregir?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el paso 3, porque el radio del semicírculo es \\(4\\ \\text{m}\\), no \\(2\\ \\text{m}\\)."
+        },
+        {
+          "id": "B",
+          "texto": "En el paso 2, porque el área del triángulo se calcula multiplicando base por altura y dividiendo entre \\(2\\)."
+        },
+        {
+          "id": "C",
+          "texto": "En el paso 2, porque el área del triángulo requiere multiplicar los tres lados."
+        },
+        {
+          "id": "D",
+          "texto": "En el paso 3, porque se debe multiplicar \\(\\pi \\times 16\\ \\text{m}^2\\) y luego dividir entre \\(2\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La región 1 es un triángulo rectángulo: su área es \\(\\frac{\\text{base} \\times \\text{altura}}{2}\\), no \\(\\text{base} \\times \\text{altura}\\)."
+      }
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un estudiante está ahorrando para comprar una consola de videojuegos que cuesta \\(\\$1.500.000\\). En enero tenía \\(\\$200.000\\) y cada mes ahorra una cantidad fija. La tabla resume su progreso."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Progreso de ahorro",
+          "columnas": [
+            "Mes",
+            "Ahorro al inicio del mes",
+            "Ahorro al finalizar el mes",
+            "Falta para completar"
+          ],
+          "filas": [
+            [
+              "Enero",
+              "\\(\\$200.000\\)",
+              "\\(\\$250.000\\)",
+              "\\(\\$1.250.000\\)"
+            ],
+            [
+              "Febrero",
+              "\\(\\$250.000\\)",
+              "\\(\\$300.000\\)",
+              "\\(\\$1.200.000\\)"
+            ],
+            [
+              "Marzo",
+              "\\(\\$300.000\\)",
+              "\\(\\$350.000\\)",
+              "\\(\\$1.150.000\\)"
+            ],
+            [
+              "Abril",
+              "\\(\\$350.000\\)",
+              "\\(\\$400.000\\)",
+              "\\(\\$1.100.000\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál es la tendencia del dinero que le falta para completar el ahorro?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Aumenta \\(\\$50.000\\) cada mes."
+        },
+        {
+          "id": "B",
+          "texto": "Disminuye \\(\\$100.000\\) cada mes."
+        },
+        {
+          "id": "C",
+          "texto": "Disminuye \\(\\$50.000\\) cada mes."
+        },
+        {
+          "id": "D",
+          "texto": "Aumenta \\(\\$100.000\\) cada mes."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La cantidad que falta pasa de \\(\\$1.250.000\\) a \\(\\$1.200.000\\), \\(\\$1.150.000\\) y \\(\\$1.100.000\\); disminuye \\(\\$50.000\\) cada mes."
+      }
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "El número de descargas de una aplicación móvil se duplica cada mes. Si en enero tuvo \\(5.000\\) descargas,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuántas descargas tuvo en julio del mismo año?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(40.000\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(160.000\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(320.000\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(640.000\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "De enero a julio hay \\(6\\) duplicaciones: \\(5.000 \\times 2^6 = 5.000 \\times 64 = 320.000\\)."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un automóvil entra a una autopista con una velocidad de \\(20\\ \\text{m/s}\\) y acelera a \\(2\\ \\text{m/s}^2\\) durante \\(10\\) segundos.",
+        "La distancia recorrida se puede calcular con la fórmula: \\[\\left(20\\,\\frac{\\text{m}}{\\text{s}}\\right)(10\\,\\text{s}) + \\frac{1}{2}\\left(2\\,\\frac{\\text{m}}{\\text{s}^2}\\right)(10\\,\\text{s})^2\\]",
+        "Al ver la fórmula, una persona afirma que es equivalente a: \\[10\\,\\text{s} \\times \\left(20\\,\\frac{\\text{m}}{\\text{s}} + \\frac{1}{2}\\left(2\\,\\frac{\\text{m}}{\\text{s}^2}\\right)\\right)\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Es verdadera la afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque factorizó correctamente el tiempo de \\(10\\) segundos."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque al factorizar se omitió que el tiempo en el segundo término está elevado al cuadrado."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque el exponente \\(2\\) del tiempo se puede eliminar al factorizar."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque también se debería factorizar el factor \\(\\frac{1}{2}\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El segundo término contiene \\((10\\,\\text{s})^2\\); al factorizar solo \\(10\\,\\text{s}\\) queda todavía otro factor de \\(10\\,\\text{s}\\) en ese término."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Valentina quiere calcular cuánto tiempo tardará en descargar una película de \\(4{,}5\\) gigabytes.",
+        "Sabe que su conexión descarga a \\(2.048\\) kilobytes por segundo y que \\(1\\) megabyte equivale a \\(1.024\\) kilobytes y \\(1\\) gigabyte equivale a \\(1.024\\) megabytes."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes procedimientos NO permite calcular el tiempo de descarga?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Paso 1. Multiplicar \\(4{,}5 \\times 1.024 \\times 1.024\\). Paso 2. Dividir el resultado entre \\(2.048\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Paso 1. Multiplicar \\(1.024 \\times 1.024 \\times 2.048\\). Paso 2. Dividir el resultado entre \\(4{,}5\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Paso 1. Dividir \\(4{,}5\\) entre \\(2.048\\). Paso 2. Multiplicar el resultado por \\(1.024 \\times 1.024\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Paso 1. Dividir \\(1.024 \\times 1.024\\) entre \\(2.048\\). Paso 2. Multiplicar el resultado por \\(4{,}5\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El tiempo se calcula convirtiendo \\(4{,}5\\ \\text{GB}\\) a \\(\\text{KB}\\) y dividiendo entre \\(2.048\\ \\text{KB/s}\\); la opción B invierte la relación."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una bodega se almacenan cajas de tres tamaños: pequeño, mediano y grande. La distribución según el contenido se muestra en la siguiente tabla de frecuencias."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla de frecuencias de cajas por peso",
+          "columnas": [
+            "Intervalo de peso (kg)",
+            "Número de cajas"
+          ],
+          "filas": [
+            [
+              "\\(0 \\leq p < 5\\)",
+              "\\(120\\)"
+            ],
+            [
+              "\\(5 \\leq p < 10\\)",
+              "\\(80\\)"
+            ],
+            [
+              "\\(10 \\leq p < 15\\)",
+              "\\(150\\)"
+            ]
+          ]
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q17_opcion_a_barras",
+          "descripcion": "Gráfica de barras de la opción A.",
+          "requires": [],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "0 ≤ p < 5",
+                "5 ≤ p < 10",
+                "10 ≤ p < 15"
+              ],
+              "datasets": [
+                {
+                  "label": "Número de cajas",
+                  "data": [
+                    120,
+                    80,
+                    150
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Intervalo (kg)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Número de cajas"
+                  },
+                  "max": 170
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q17_opcion_b_barras",
+          "descripcion": "Gráfica de barras de la opción B.",
+          "requires": [],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "0 ≤ p < 5",
+                "5 ≤ p < 10",
+                "10 ≤ p < 15"
+              ],
+              "datasets": [
+                {
+                  "label": "Número de cajas",
+                  "data": [
+                    150,
+                    80,
+                    120
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Intervalo (kg)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Número de cajas"
+                  },
+                  "max": 170
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q17_opcion_c_barras",
+          "descripcion": "Gráfica de barras de la opción C.",
+          "requires": [],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "0 ≤ p < 5",
+                "5 ≤ p < 10",
+                "10 ≤ p < 15"
+              ],
+              "datasets": [
+                {
+                  "label": "Número de cajas",
+                  "data": [
+                    80,
+                    120,
+                    150
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Intervalo (kg)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Número de cajas"
+                  },
+                  "max": 170
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q17_opcion_d_barras",
+          "descripcion": "Gráfica de barras de la opción D.",
+          "requires": [],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "0 ≤ p < 5",
+                "5 ≤ p < 10",
+                "10 ≤ p < 15"
+              ],
+              "datasets": [
+                {
+                  "label": "Número de cajas",
+                  "data": [
+                    120,
+                    150,
+                    80
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Intervalo (kg)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Número de cajas"
+                  },
+                  "max": 170
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál es la gráfica que representa correctamente la distribución de las cajas según su peso?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Gráfica A."
+        },
+        {
+          "id": "B",
+          "texto": "Gráfica B."
+        },
+        {
+          "id": "C",
+          "texto": "Gráfica C."
+        },
+        {
+          "id": "D",
+          "texto": "Gráfica D."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "La opción A mantiene las frecuencias correctas: \\(120\\), \\(80\\) y \\(150\\) para los intervalos \\(0 \\leq p < 5\\), \\(5 \\leq p < 10\\) y \\(10 \\leq p < 15\\)."
+      }
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La figura muestra la distribución de los medios de comunicación que utilizan \\(200\\) personas para informarse. Algunas usan solo uno, otras dos, y otras los tres medios."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q18_diagrama_venn_medios",
+          "descripcion": "Diagrama de Venn de medios de comunicación.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.35,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "circle",
+                      "x": 38,
+                      "y": 60,
+                      "r": 24,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(255,255,255,0)"
+                    },
+                    {
+                      "type": "circle",
+                      "x": 62,
+                      "y": 60,
+                      "r": 24,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(255,255,255,0)"
+                    },
+                    {
+                      "type": "circle",
+                      "x": 50,
+                      "y": 35,
+                      "r": 24,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(255,255,255,0)"
+                    },
+                    {
+                      "type": "text",
+                      "x": 19,
+                      "y": 89,
+                      "text": "Televisión",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 81,
+                      "y": 89,
+                      "text": "Internet",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 78,
+                      "y": 8,
+                      "text": "Radio",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 24,
+                      "y": 63,
+                      "text": "45",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 76,
+                      "y": 63,
+                      "text": "60",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 17,
+                      "text": "20",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 74,
+                      "text": "25",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 41,
+                      "y": 44,
+                      "text": "18",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 59,
+                      "y": 44,
+                      "text": "22",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 53,
+                      "text": "10",
+                      "font": "14px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 88,
+                      "y": 5,
+                      "text": "Figura",
+                      "font": "bold 13px Arial",
+                      "fill": "#000000"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Si se necesita saber la cantidad total de personas que se informan por internet, ¿cuáles son los datos que se deben sumar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(60,\\ 25,\\ 22\\) y \\(10\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(25\\) y \\(60\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(10,\\ 22\\) y \\(25\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(45,\\ 25\\) y \\(18\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Se suman todas las regiones dentro del círculo de internet: \\(60 + 25 + 22 + 10\\)."
+      }
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una tienda de ropa hay pantalones de \\(4\\) tallas: S, M, L y XL. Cada talla está disponible en \\(5\\) colores diferentes. Felipe afirma que hay \\(20\\) combinaciones posibles de talla y color."
+      ],
+      "materiales": [],
+      "pregunta": "¿Es correcta la afirmación de Felipe?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque \\(4 \\times 5\\) es la cantidad de formas de elegir una talla y un color."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque se debe calcular \\(4 + 5\\) para obtener el número de posibilidades."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque en total hay \\(4 \\times 5\\) tallas de pantalón disponibles."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque cada talla tiene solo una opción de color posible."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Por el principio multiplicativo, hay \\(4\\) opciones de talla y \\(5\\) de color: \\(4 \\times 5 = 20\\) combinaciones."
+      }
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un carpintero tiene tablones de madera de tres formas para hacer mesas. Si decide organizarlos de menor a mayor número de lados,"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q20_tablones_formas",
+          "descripcion": "Figura de tres tablones: triángulo, pentágono y rectángulo.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.7,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 60
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "rectangle",
+                      "x": 5,
+                      "y": 5,
+                      "width": 90,
+                      "height": 50,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "transparent"
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 48,
+                      "text": "Tablón 1",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          11,
+                          10
+                        ],
+                        [
+                          31,
+                          10
+                        ],
+                        [
+                          21,
+                          37
+                        ]
+                      ],
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(128,128,128,0.20)"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 48,
+                      "text": "Tablón 2",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          50,
+                          38
+                        ],
+                        [
+                          62,
+                          26
+                        ],
+                        [
+                          57,
+                          10
+                        ],
+                        [
+                          43,
+                          10
+                        ],
+                        [
+                          38,
+                          26
+                        ]
+                      ],
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(128,128,128,0.20)"
+                    },
+                    {
+                      "type": "text",
+                      "x": 80,
+                      "y": 48,
+                      "text": "Tablón 3",
+                      "font": "13px Arial",
+                      "fill": "#000000"
+                    },
+                    {
+                      "type": "rectangle",
+                      "x": 69,
+                      "y": 11,
+                      "width": 22,
+                      "height": 26,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "rgba(128,128,128,0.20)"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿cuál debe ser el orden?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Tablón 1 - Tablón 3 - Tablón 2"
+        },
+        {
+          "id": "B",
+          "texto": "Tablón 1 - Tablón 2 - Tablón 3"
+        },
+        {
+          "id": "C",
+          "texto": "Tablón 2 - Tablón 3 - Tablón 1"
+        },
+        {
+          "id": "D",
+          "texto": "Tablón 3 - Tablón 1 - Tablón 2"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "El tablón 1 es un triángulo de \\(3\\) lados, el tablón 3 es un rectángulo de \\(4\\) lados y el tablón 2 es un pentágono de \\(5\\) lados."
+      }
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una ciudad se asignan placas de motos de la siguiente forma:",
+        "Tipo 1. Para motos particulares: placa con \\(3\\) letras y \\(2\\) dígitos; tanto letras como dígitos se pueden repetir.",
+        "Tipo 2. Para motos de reparto: placa con la letra M seguida de \\(3\\) dígitos; los dígitos se pueden repetir.",
+        "Sabiendo que hay \\(26\\) letras y \\(10\\) dígitos,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál es la expresión que permite calcular el número máximo de placas de los dos tipos?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(26^3 \\times 10^2 + 1 \\times 10^3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((26^3 + 1) \\times (10^2 + 10^3)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((26^3 + 26) \\times (10^2 + 10^3)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(26^3 \\times 10^2 + 26 \\times 10^3\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Tipo 1: \\(26^3 \\times 10^2\\). Tipo 2: la M está fija, por eso es \\(1 \\times 10^3\\). Se suman ambos tipos."
+      }
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona cuenta con \\(\\$8.000\\) para comprar la mayor cantidad posible de chocolatinas.",
+        "En el almacén 1 venden cada chocolatina en \\(\\$1.500\\) y ofrecen la promoción: \"lleve \\(4\\) chocolatinas por el precio de \\(3\\)\". Para saber cuántas puede comprar efectúa: Paso 1. Dividir \\(\\$8.000\\) entre \\(\\$1.500\\) y aproximar al entero menor más próximo. Paso 2. Dividir el número obtenido en el paso 1 entre \\(3\\) y aproximar al entero menor más próximo. Paso 3. Sumar los resultados de los pasos 1 y 2.",
+        "En el almacén 2 venden cada chocolatina a \\(\\$1.200\\). Para saber cuántas puede comprar efectúa: Paso 1. Dividir \\(\\$8.000\\) entre \\(\\$1.200\\) y aproximar al entero menor más próximo."
+      ],
+      "materiales": [],
+      "pregunta": "¿En cuál almacén puede comprar más chocolatinas con \\(\\$8.000\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el almacén 1, pues puede comprar \\(6\\) chocolatinas."
+        },
+        {
+          "id": "B",
+          "texto": "En el almacén 2, pues puede comprar \\(6\\) chocolatinas."
+        },
+        {
+          "id": "C",
+          "texto": "En el almacén 1, pues puede comprar \\(7\\) chocolatinas."
+        },
+        {
+          "id": "D",
+          "texto": "En el almacén 2, pues puede comprar \\(7\\) chocolatinas."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": null,
+        "estado": "inconsistencia_detectada",
+        "explicacion": "La fuente termina marcando D, pero con los procedimientos dados: almacén 1 permite comprar \\(5\\) y recibir \\(1\\) adicional, total \\(6\\); almacén 2 permite comprar \\(6\\). No hay un almacén que permita comprar más chocolatinas. La pregunta queda sin opción correcta tal como está redactada."
+      }
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un ciclista recorre una ruta a velocidad constante. A partir de cierto momento se registra la distancia recorrida cada media hora."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Distancia recorrida por tiempo",
+          "columnas": [
+            "Tiempo (horas)",
+            "\\(0{,}5\\)",
+            "\\(1\\)",
+            "\\(1{,}5\\)"
+          ],
+          "filas": [
+            [
+              "Distancia (km)",
+              "\\(10\\)",
+              "\\(20\\)",
+              "\\(30\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál debe ser la distancia a las 2 horas y qué tipo de proporcionalidad existe entre distancia y tiempo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(35\\ \\text{km}\\) y la proporcionalidad es directa."
+        },
+        {
+          "id": "B",
+          "texto": "\\(40\\ \\text{km}\\) y la proporcionalidad es inversa."
+        },
+        {
+          "id": "C",
+          "texto": "\\(40\\ \\text{km}\\) y la proporcionalidad es directa."
+        },
+        {
+          "id": "D",
+          "texto": "\\(35\\ \\text{km}\\) y la proporcionalidad es inversa."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La distancia aumenta \\(10\\ \\text{km}\\) cada \\(0{,}5\\) horas, es decir, \\(20\\ \\text{km}\\) por hora. A las \\(2\\) horas son \\(40\\ \\text{km}\\) y la proporcionalidad es directa."
+      }
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un médico relaciona el peso de un bebé con sus meses de vida durante los primeros cinco meses.",
+        "El médico propone la expresión: \\[\\text{Peso} = 3{,}4 + (0{,}8 \\times \\text{edad})\\]"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Peso del bebé por edad",
+          "columnas": [
+            "Edad (meses)",
+            "Peso (kg)"
+          ],
+          "filas": [
+            [
+              "\\(1\\)",
+              "\\(4{,}2\\)"
+            ],
+            [
+              "\\(2\\)",
+              "\\(5{,}0\\)"
+            ],
+            [
+              "\\(3\\)",
+              "\\(5{,}8\\)"
+            ],
+            [
+              "\\(4\\)",
+              "\\(6{,}6\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Es verdadero afirmar que esta expresión representa la información de la tabla?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque al reemplazar cada edad en la expresión se obtiene el peso correspondiente de la tabla."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque el coeficiente que multiplica la edad debería ser \\(1{,}6\\)."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque para \\(1\\) mes, el peso según la expresión es diferente del que aparece en la tabla."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque para hallar el peso solo se necesita multiplicar la edad por \\(0{,}8\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Para edades \\(1\\), \\(2\\), \\(3\\) y \\(4\\), la expresión produce \\(4{,}2\\), \\(5{,}0\\), \\(5{,}8\\) y \\(6{,}6\\ \\text{kg}\\), respectivamente."
+      }
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Las deudas en millones de pesos de cuatro comerciantes se registran en la siguiente tabla. Se deben ordenar de mayor a menor deuda, recordando que las deudas se representan con valores negativos."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Saldos de comerciantes",
+          "columnas": [
+            "Comerciante",
+            "Saldo (millones de pesos)"
+          ],
+          "filas": [
+            [
+              "Pedro",
+              "\\(-3{,}8\\)"
+            ],
+            [
+              "Isabel",
+              "\\(-3{,}15\\)"
+            ],
+            [
+              "Marco",
+              "\\(-3{,}82\\)"
+            ],
+            [
+              "Claudia",
+              "\\(-3{,}5\\)"
+            ]
+          ]
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Opción A",
+          "columnas": [
+            "Orden",
+            "Comerciante"
+          ],
+          "filas": [
+            [
+              "1.°",
+              "Marco"
+            ],
+            [
+              "2.°",
+              "Pedro"
+            ],
+            [
+              "3.°",
+              "Claudia"
+            ],
+            [
+              "4.°",
+              "Isabel"
+            ]
+          ]
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Opción B",
+          "columnas": [
+            "Orden",
+            "Comerciante"
+          ],
+          "filas": [
+            [
+              "1.°",
+              "Isabel"
+            ],
+            [
+              "2.°",
+              "Claudia"
+            ],
+            [
+              "3.°",
+              "Pedro"
+            ],
+            [
+              "4.°",
+              "Marco"
+            ]
+          ]
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Opción C",
+          "columnas": [
+            "Orden",
+            "Comerciante"
+          ],
+          "filas": [
+            [
+              "1.°",
+              "Pedro"
+            ],
+            [
+              "2.°",
+              "Marco"
+            ],
+            [
+              "3.°",
+              "Isabel"
+            ],
+            [
+              "4.°",
+              "Claudia"
+            ]
+          ]
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Opción D",
+          "columnas": [
+            "Orden",
+            "Comerciante"
+          ],
+          "filas": [
+            [
+              "1.°",
+              "Claudia"
+            ],
+            [
+              "2.°",
+              "Isabel"
+            ],
+            [
+              "3.°",
+              "Pedro"
+            ],
+            [
+              "4.°",
+              "Marco"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Para determinar quién tiene la mayor deuda, es decir, el valor más negativo, ¿cuál tabla indica el orden correcto de mayor a menor deuda?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Tabla A."
+        },
+        {
+          "id": "B",
+          "texto": "Tabla B."
+        },
+        {
+          "id": "C",
+          "texto": "Tabla C."
+        },
+        {
+          "id": "D",
+          "texto": "Tabla D."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "La mayor deuda es el saldo más negativo: Marco \\(-3{,}82\\), Pedro \\(-3{,}8\\), Claudia \\(-3{,}5\\), Isabel \\(-3{,}15\\)."
+      }
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona quiere comprar una laptop y recopila información de siete opciones en una tabla."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Opciones de laptops",
+          "columnas": [
+            "Marca",
+            "Modelo",
+            "Precio ($)"
+          ],
+          "filas": [
+            [
+              "Nexon",
+              "Pro14",
+              "\\(\\$2.800.000\\)"
+            ],
+            [
+              "Velox",
+              "Air",
+              "\\(\\$2.500.000\\)"
+            ],
+            [
+              "Nexon",
+              "Pro15",
+              "\\(\\$3.100.000\\)"
+            ],
+            [
+              "Velox",
+              "Ultra",
+              "\\(\\$3.400.000\\)"
+            ],
+            [
+              "Datastorm",
+              "G1",
+              "\\(\\$2.700.000\\)"
+            ],
+            [
+              "Datastorm",
+              "G2",
+              "\\(\\$2.950.000\\)"
+            ],
+            [
+              "Velox",
+              "Slim",
+              "\\(\\$2.450.000\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Si la persona decide comprar la laptop de mayor precio, ¿cuál debe ser la marca de su elección?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Nexon."
+        },
+        {
+          "id": "B",
+          "texto": "Velox."
+        },
+        {
+          "id": "C",
+          "texto": "Datastorm."
+        },
+        {
+          "id": "D",
+          "texto": "No se puede determinar."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El mayor precio es \\(\\$3.400.000\\), correspondiente al modelo Ultra de la marca Velox."
+      }
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un país se aplica un \"impuesto solidario\" equivalente al \\(3\\%\\) del ingreso anual más el \\(0{,}5\\%\\) del patrimonio.",
+        "Este impuesto solo debe pagarlo quien tenga un patrimonio mayor a \\(\\$200.000\\) dólares o cuyos ingresos anuales sean superiores a \\(\\$50.000\\) dólares."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Ingreso anual y patrimonio",
+          "columnas": [
+            "Nombre",
+            "Ingreso anual ($)",
+            "Patrimonio ($)"
+          ],
+          "filas": [
+            [
+              "Rebeca",
+              "\\(\\$30.000\\)",
+              "\\(\\$250.000\\)"
+            ],
+            [
+              "Héctor",
+              "\\(\\$60.000\\)",
+              "\\(\\$80.000\\)"
+            ],
+            [
+              "Natalia",
+              "\\(\\$25.000\\)",
+              "\\(\\$150.000\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿A quién o quiénes se les debe cobrar el impuesto solidario?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solamente a Natalia."
+        },
+        {
+          "id": "B",
+          "texto": "Solamente a Héctor."
+        },
+        {
+          "id": "C",
+          "texto": "A Rebeca y a Héctor."
+        },
+        {
+          "id": "D",
+          "texto": "A Rebeca, Héctor y Natalia."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Rebeca cumple por patrimonio mayor a \\(\\$200.000\\); Héctor cumple por ingresos mayores a \\(\\$50.000\\); Natalia no cumple ninguna condición."
+      }
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una bolsa hay \\(10\\) fichas iguales en tamaño: \\(6\\) rojas y \\(4\\) amarillas. Un juego consiste en sacar, en un solo intento, \\(4\\) fichas.",
+        "La persona gana si, al menos, \\(3\\) fichas son rojas. La probabilidad de ganar se calcula como: \\[\\text{Probabilidad} = \\frac{\\text{Número de casos favorables}}{\\text{Número de casos posibles}}\\]",
+        "Los casos favorables se obtienen sumando: el número de formas de escoger exactamente \\(3\\) fichas rojas entre las \\(6\\) rojas y \\(1\\) ficha amarilla entre las \\(4\\) amarillas; y el número de formas de escoger las \\(4\\) fichas rojas entre las \\(6\\) rojas."
+      ],
+      "materiales": [],
+      "pregunta": "Para conocer la probabilidad, también se debe calcular el número de:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Formas de escoger \\(4\\) fichas en un conjunto de \\(10\\) fichas."
+        },
+        {
+          "id": "B",
+          "texto": "Formas de escoger \\(4\\) fichas en un conjunto de \\(6\\) fichas."
+        },
+        {
+          "id": "C",
+          "texto": "Formas de escoger \\(6\\) fichas en un conjunto de \\(10\\) fichas."
+        },
+        {
+          "id": "D",
+          "texto": "Formas de escoger \\(3\\) fichas en un conjunto de \\(10\\) fichas."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Los casos posibles son todas las formas de escoger \\(4\\) fichas de las \\(10\\) fichas disponibles."
+      }
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Las edades en años de los jugadores de un equipo de baloncesto son: \\[17,\\ 22,\\ 25,\\ 19,\\ 22,\\ 30,\\ 21,\\ 22,\\ 24,\\ 18,\\ 28\\] La liga establece que para participar en el torneo juvenil, el promedio de edad del equipo debe ser menor a \\(23\\) años."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes procedimientos permite determinar si el equipo puede participar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Paso 1. Sumar todas las edades. Paso 2. Dividir el resultado del paso 1 entre el número de jugadores. Paso 3. Comparar el resultado del paso 2 con \\(23\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Paso 1. Sumar todas las edades. Paso 2. Multiplicar el resultado del paso 1 por el número de jugadores. Paso 3. Comparar el resultado del paso 2 con \\(23\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Paso 1. Ordenar las edades de menor a mayor. Paso 2. Identificar el dato en la posición central. Paso 3. Comparar el dato del paso 2 con \\(23\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Paso 1. Contar cuántas veces aparece cada edad. Paso 2. Identificar la edad que más se repite. Paso 3. Comparar esa edad con \\(23\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Para comparar con el requisito se calcula el promedio: \\(\\frac{\\text{suma de edades}}{\\text{número de jugadores}}\\)."
+      }
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un investigador analiza las calificaciones de Física y Química de \\(150\\) estudiantes y calcula un coeficiente de correlación de Pearson de \\(-0{,}87\\).",
+        "Con esto afirma: \"Si un estudiante tiene una nota alta en Física, es muy probable que su nota en Química sea baja\".",
+        "Recuerde que si el coeficiente está cercano a \\(-1\\) o a \\(1\\) indica una relación lineal fuerte, y si es negativo, al aumentar una variable la otra tiende a disminuir."
+      ],
+      "materiales": [],
+      "pregunta": "¿Por qué es verdadera la afirmación del investigador?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Porque la nota de Química se obtiene multiplicando \\(-0{,}87\\) por la nota de Física."
+        },
+        {
+          "id": "B",
+          "texto": "Porque \\(-0{,}87\\) es cercano a \\(-1\\) y es negativo, lo que indica una relación lineal fuerte e inversa."
+        },
+        {
+          "id": "C",
+          "texto": "Porque \\(-0{,}87\\) es menor que cero, lo que indica que los datos están muy concentrados."
+        },
+        {
+          "id": "D",
+          "texto": "Porque la constante de proporcionalidad entre las notas es \\(-0{,}87\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Un coeficiente cercano a \\(-1\\) y negativo indica una relación lineal fuerte e inversa."
+      }
+    }
+  ],
+  "resumenRespuestas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "claveFuente": "C",
+      "claveValidada": "D",
+      "estado": "inconsistencia_detectada"
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "claveFuente": "D",
+      "claveValidada": null,
+      "estado": "inconsistencia_detectada"
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    }
+  ],
+  "observacionesValidacion": [
+    {
+      "id": 6,
+      "mensaje": "La clave comentada marca C, pero la validación matemática da D. Además, el paso 2 pide una igualdad que no ocurre exactamente con el valor \\(48\\)."
+    },
+    {
+      "id": 22,
+      "mensaje": "La clave comentada final marca D, pero los procedimientos dados producen \\(6\\) chocolatinas en ambos almacenes; no hay opción correcta para \"comprar más\"."
+    }
+  ]
+}

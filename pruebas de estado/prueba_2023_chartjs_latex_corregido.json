@@ -1,0 +1,1629 @@
+{
+  "titulo": "prueba 2023",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.2-corregida",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas se delimitan con LaTeX solo cuando aplica.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON.",
+    "graficos": "Los gráficos están representados como configuraciones Chart.js; las figuras geométricas usan canvasShapesPlugin.",
+    "respuestas": "claveFuente proviene de la fuente cuando existe; si no hay clave consolidada, queda como No indicada.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Los valores monetarios se dejan en texto normal para evitar conflictos con delimitadores matemáticos."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar figuras geométricas, mapas, etiquetas y elementos auxiliares sobre un canvas de Chart.js.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n    function style(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      style(shape);\n      if (shape.type === \"text\") {\n        ctx.fillStyle = shape.fill ?? \"#000000\";\n        ctx.fillText(shape.text, x(shape.x), y(shape.y));\n      }\n      if (shape.type === \"rectangle\") {\n        const left = x(shape.x);\n        const top = y(shape.y + shape.height);\n        const width = x(shape.x + shape.width) - x(shape.x);\n        const height = y(shape.y) - y(shape.y + shape.height);\n        ctx.beginPath();\n        ctx.rect(left, top, width, height);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n      if (shape.type === \"line\") {\n        ctx.beginPath();\n        ctx.moveTo(x(shape.x1), y(shape.y1));\n        ctx.lineTo(x(shape.x2), y(shape.y2));\n        ctx.stroke();\n      }\n      if (shape.type === \"polygon\") {\n        ctx.beginPath();\n        shape.points.forEach((p, i) => {\n          const px = x(p[0]);\n          const py = y(p[1]);\n          if (i === 0) ctx.moveTo(px, py);\n          else ctx.lineTo(px, py);\n        });\n        ctx.closePath();\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n      if (shape.type === \"circle\") {\n        ctx.beginPath();\n        ctx.arc(x(shape.x), y(shape.y), dx(shape.r), 0, Math.PI * 2);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra la cantidad mensual de empanadas que come cada persona, de un grupo de 9 personas."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 1",
+          "columnas": [
+            "% Elisa",
+            "Gabriela",
+            "Ximena",
+            "Fernando",
+            "Ricardo",
+            "Jaime",
+            "Néstor",
+            "Tatiana",
+            "Bibiana"
+          ],
+          "filas": [
+            [
+              "3",
+              "6",
+              "6",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "15"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Quién de estas personas come una cantidad mensual de empanadas igual a la mediana de las 9 cantidades?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Fernando."
+        },
+        {
+          "id": "B",
+          "texto": "Bibiana."
+        },
+        {
+          "id": "C",
+          "texto": "Ricardo."
+        },
+        {
+          "id": "D",
+          "texto": "Gabriela."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En clase de Estadística el profesor les pidió a los estudiantes que eligieran 5 números al azar para desarrollar un juego. En la tabla aparecen los números escogidos por 4 estudiantes. El juego consiste en calcular la mediana de los números escogidos y gana el estudiante que tenga la mayor mediana."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 2",
+          "columnas": [
+            "% Estudiante I",
+            "Estudiante II",
+            "Estudiante III",
+            "Estudiante IV"
+          ],
+          "filas": [
+            [
+              "0, 1, 5, 5, 7",
+              "2, 2, 2, 5, 5",
+              "1, 1, 6, 7, 8",
+              "1, 2, 2, 8, 9"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál estudiante ganó el juego?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Estudiante I."
+        },
+        {
+          "id": "B",
+          "texto": "Estudiante II."
+        },
+        {
+          "id": "C",
+          "texto": "Estudiante III."
+        },
+        {
+          "id": "D",
+          "texto": "Estudiante IV."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una pastelería realizó una encuesta para conocer los sabores de tortas preferidos por sus clientes. La tabla muestra los resultados de la encuesta. Además, el gerente elaboró una gráfica que muestra el número de tortas vendidas cada día de la última semana. La pastelería planea realizar una promoción con tortas de los 2 sabores preferidos por los clientes, para venderlas el día de la semana con el mayor número de ventas."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 3",
+          "columnas": [
+            "% Sabor",
+            "Número de clientes que prefieren el sabor"
+          ],
+          "filas": [
+            [
+              "Nuez",
+              "139 clientes"
+            ],
+            [
+              "Almendra",
+              "161 clientes"
+            ],
+            [
+              "Chocolate",
+              "170 clientes"
+            ],
+            [
+              "Naranja",
+              "149 clientes"
+            ]
+          ]
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q3_tortas_semana",
+          "descripcion": "Tortas vendidas durante la última semana",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "Lunes",
+                "Martes",
+                "Miércoles",
+                "Jueves",
+                "Viernes",
+                "Sábado",
+                "Domingo"
+              ],
+              "datasets": [
+                {
+                  "label": "Tortas vendidas",
+                  "data": [
+                    23,
+                    39,
+                    38,
+                    44,
+                    37,
+                    43,
+                    42
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.6,
+              "plugins": {
+                "legend": {
+                  "display": false,
+                  "position": "bottom"
+                }
+              },
+              "scales": {
+                "x": {
+                  "stacked": false
+                },
+                "y": {
+                  "stacked": false,
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Tortas vendidas"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál día de la semana se venderán las tortas y de qué sabores serán?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Se venderán el sábado y los sabores serán almendra y chocolate."
+        },
+        {
+          "id": "B",
+          "texto": "Se venderán el jueves y los sabores serán almendra y chocolate."
+        },
+        {
+          "id": "C",
+          "texto": "Se venderán el sábado y los sabores serán naranja y nuez."
+        },
+        {
+          "id": "D",
+          "texto": "Se venderán el jueves y los sabores serán naranja y nuez."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Si un futbolista recorre un tramo de 80 metros a una velocidad constante de 20 km/h,"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q4_opcion_A_velocidad",
+          "descripcion": "Opción A: velocidad disminuye",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "0",
+                "80"
+              ],
+              "datasets": [
+                {
+                  "label": "Velocidad",
+                  "data": [
+                    20,
+                    0
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 3,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.55,
+              "plugins": {
+                "legend": {
+                  "display": false,
+                  "position": "top"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Metros recorridos"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Velocidad (km/h)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q4_opcion_B_velocidad",
+          "descripcion": "Opción B: velocidad aumenta",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "0",
+                "80"
+              ],
+              "datasets": [
+                {
+                  "label": "Velocidad",
+                  "data": [
+                    20,
+                    40
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 3,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.55,
+              "plugins": {
+                "legend": {
+                  "display": false,
+                  "position": "top"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Metros recorridos"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Velocidad (km/h)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q4_opcion_C_velocidad",
+          "descripcion": "Opción C: velocidad constante",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "0",
+                "80"
+              ],
+              "datasets": [
+                {
+                  "label": "Velocidad",
+                  "data": [
+                    20,
+                    20
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 3,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.55,
+              "plugins": {
+                "legend": {
+                  "display": false,
+                  "position": "top"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Metros recorridos"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Velocidad (km/h)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q4_opcion_D_velocidad",
+          "descripcion": "Opción D: segmento vertical",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "80",
+                "80"
+              ],
+              "datasets": [
+                {
+                  "label": "Velocidad",
+                  "data": [
+                    0,
+                    20
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 3,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.55,
+              "plugins": {
+                "legend": {
+                  "display": false,
+                  "position": "top"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Metros recorridos"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Velocidad (km/h)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿cuál de las siguientes gráficas representa correctamente la velocidad del futbolista en dicho tramo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Gráfica con velocidad que disminuye desde 20 km/h hasta 0 km/h mientras aumentan los metros recorridos."
+        },
+        {
+          "id": "B",
+          "texto": "Gráfica con velocidad que aumenta aproximadamente de 20 km/h a 40 km/h."
+        },
+        {
+          "id": "C",
+          "texto": "Gráfica con velocidad constante de 20 km/h durante todo el tramo."
+        },
+        {
+          "id": "D",
+          "texto": "Gráfica con un segmento vertical cerca de los 80 metros recorridos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Antes de iniciar el año escolar en un colegio, el encargado de mantenimiento revisó todas las sillas disponibles que hay en el colegio para los estudiantes. Al finalizar la revisión encontró que: Hay 610 sillas en buen estado. Hay 90 sillas para arreglar. Hay 200 sillas de brazo izquierdo. Hay 500 sillas de brazo derecho."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes datos se puede calcular con la información obtenida por el encargado?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad de estudiantes que usan sillas de brazo izquierdo."
+        },
+        {
+          "id": "B",
+          "texto": "La cantidad de sillas de brazo derecho para arreglar."
+        },
+        {
+          "id": "C",
+          "texto": "La cantidad de estudiantes inscritos en el colegio."
+        },
+        {
+          "id": "D",
+          "texto": "La cantidad de sillas revisadas por el encargado."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un contenedor está diseñado con tres materiales distintos: un material para la base, un material para la tapa y un material para las caras laterales. La siguiente tabla muestra el área total y el costo que tiene 1 m\\(^2\\) de material para cada parte del contenedor."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 6",
+          "columnas": [
+            "% Parte del contenedor",
+            "Área total (m\\(^2\\))",
+            "Costo de 1 m\\(^2\\) de material"
+          ],
+          "filas": [
+            [
+              "Base",
+              "2",
+              "$30.000"
+            ],
+            [
+              "Tapa",
+              "2",
+              "$20.000"
+            ],
+            [
+              "Caras laterales",
+              "6",
+              "$12.000"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál de las siguientes opciones representa el costo total del material para cada parte del contenedor?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Base: $32.000; Tapa: $22.000; Caras laterales: $18.000."
+        },
+        {
+          "id": "B",
+          "texto": "Base: $15.000; Tapa: $10.000; Caras laterales: $2.000."
+        },
+        {
+          "id": "C",
+          "texto": "Base: $60.000; Tapa: $40.000; Caras laterales: $72.000."
+        },
+        {
+          "id": "D",
+          "texto": "Base: $30.000; Tapa: $20.000; Caras laterales: $12.000."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En las olimpiadas escolares se realizó una competencia de atletismo, donde los estudiantes corrieron 100 metros planos. Cada equipo eligió una niña y un niño que los representó en la competencia. Quien llegó en primer lugar obtuvo la medalla de oro, quien llegó en segundo lugar obtuvo la medalla de plata y quien llegó en tercer lugar obtuvo la medalla de bronce. La tabla muestra los tiempos de los representantes de cada equipo por categoría. De acuerdo con la información presentada,"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 7",
+          "columnas": [
+            "% Equipo",
+            "Categoría femenina",
+            "Categoría masculina"
+          ],
+          "filas": [
+            [
+              "Equipo 1",
+              "24 s",
+              "19 s"
+            ],
+            [
+              "Equipo 2",
+              "20 s",
+              "22 s"
+            ],
+            [
+              "Equipo 3",
+              "23 s",
+              "25 s"
+            ],
+            [
+              "Equipo 4",
+              "21 s",
+              "18 s"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cómo se organizó el podio en la premiación final para la categoría femenina?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Oro para el equipo 1, plata para el equipo 2 y bronce para el equipo 3."
+        },
+        {
+          "id": "B",
+          "texto": "Oro para el equipo 2, plata para el equipo 4 y bronce para el equipo 3."
+        },
+        {
+          "id": "C",
+          "texto": "Oro para el equipo 3, plata para el equipo 2 y bronce para el equipo 1."
+        },
+        {
+          "id": "D",
+          "texto": "Oro para el equipo 4, plata para el equipo 1 y bronce para el equipo 2."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La imagen muestra el nuevo diseño de una baldosa que se vende en una ferretería. Para calcular el área de la región de la baldosa que está sombreada, un empleado realizó el siguiente procedimiento: Paso 1. Restó al área de la baldosa el área del círculo que pasa por P, Q, R, S y ese resultado lo dividió entre 2. Paso 2. Restó al área del círculo el área del cuadrado PQRS, y ese resultado lo dividió entre 2. Paso 3. Dividió entre 2 el área del cuadrado PQRS. Paso 4. Sumó los resultados obtenidos en los pasos 1, 2 y 3. Una persona afirma que el anterior procedimiento también sirve para calcular el área de la región que está pintada de blanco."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q8_baldosa_diseno",
+          "descripcion": "Diseño de baldosa cuadrada con círculo y cuadrado interior.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 90
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 90
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "rectangle",
+                      "x": 10,
+                      "y": 10,
+                      "width": 60,
+                      "height": 60,
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "circle",
+                      "x": 40,
+                      "y": 40,
+                      "r": 30,
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 40,
+                      "y1": 70,
+                      "x2": 40,
+                      "y2": 10,
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 40,
+                      "x2": 70,
+                      "y2": 40,
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          40,
+                          70
+                        ],
+                        [
+                          70,
+                          40
+                        ],
+                        [
+                          40,
+                          10
+                        ],
+                        [
+                          10,
+                          40
+                        ]
+                      ],
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 40,
+                      "y": 77,
+                      "text": "P"
+                    },
+                    {
+                      "type": "text",
+                      "x": 76,
+                      "y": 40,
+                      "text": "Q"
+                    },
+                    {
+                      "type": "text",
+                      "x": 40,
+                      "y": 4,
+                      "text": "R"
+                    },
+                    {
+                      "type": "text",
+                      "x": 4,
+                      "y": 40,
+                      "text": "S"
+                    },
+                    {
+                      "type": "text",
+                      "x": 40,
+                      "y": 84,
+                      "text": "60 cm"
+                    },
+                    {
+                      "type": "text",
+                      "x": 4,
+                      "y": 70,
+                      "text": "60 cm"
+                    },
+                    {
+                      "type": "text",
+                      "x": 80,
+                      "y": 56,
+                      "text": "30 cm"
+                    },
+                    {
+                      "type": "text",
+                      "x": 25,
+                      "y": 2,
+                      "text": "30 cm"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Es verdadera esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque el empleado se confundió y realizó un procedimiento para el área blanca pero no para el área sombreada."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque en el paso 2 y 3 se debe usar el área de un rombo y no de un cuadrado, por lo cual no es correcto."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque el área blanca es igual al área sombreada y el procedimiento realizado por el empleado es correcto."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque al ser igual la parte blanca a la sombreada solamente se debía dividir entre 2 el área de la baldosa."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Jorge es el hermano menor de Paula. La diferencia entre sus edades es el doble de la edad de Jorge. Si \\(P\\) es la edad de Paula y \\(J\\) es la edad de Jorge,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál es la forma correcta de expresar esta información?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(P - J = 2J\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(2(P - J) = J\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((P - J)^2 = J\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(P - J = 2 + J\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un parque natural está dividido en 3 regiones. Para cada región, se representó el número de árboles y el número de aves por medio de una pareja ordenada \\((x,y)\\), donde \\(x\\) representa el número de árboles en cada región y \\(y\\) representa el número de aves de la misma región, obteniendo \\((20,100)\\), \\((40,400)\\) y \\((60,800)\\), respectivamente. Un trabajador del parque afirma que las variables \\(x\\) y \\(y\\) se relacionan por medio de la función \\[ y = \\frac{x^2}{4}. \\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Es verdadera la afirmación del trabajador?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque los valores de la variable \\(x\\) aumentan linealmente."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque los valores de la variable \\(y\\) se están duplicando."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque cuando \\(x\\) vale 60, el valor de \\(y\\) debería ser 900."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque cuando \\(x\\) vale 20, el valor de \\(y\\) es igual a 100."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "A todos los asistentes a un centro deportivo se les hizo la pregunta: ¿Cuál es su deporte preferido? Las respuestas obtenidas aparecen en la tabla. Para hallar la razón entre la cantidad de asistentes que prefieren el fútbol o el baloncesto, respecto al total de asistentes, se utilizó el siguiente procedimiento: Paso 1. Sumar el número de asistentes que prefieren el fútbol y el número de asistentes que prefieren el baloncesto. Paso 2. Calcular el número total de asistentes. Paso 3. Escribir una fracción cuyo numerador es el resultado del paso 1 y el denominador es el resultado del paso 2."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 11",
+          "columnas": [
+            "% Deporte",
+            "Cantidad de asistentes"
+          ],
+          "filas": [
+            [
+              "Fútbol",
+              "23"
+            ],
+            [
+              "Tenis",
+              "12"
+            ],
+            [
+              "Baloncesto",
+              "41"
+            ],
+            [
+              "Golf",
+              "24"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál es la fracción obtenida luego de realizar el procedimiento?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(100/64\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(64/100\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(100/23\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(23/100\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una aplicación para celular mide la cantidad de calorías que quema una persona al trotar. En la gráfica, se muestra la cantidad de calorías que quemaron Mónica y Julio al trotar durante 30 minutos. Usando solo la información de la gráfica,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál de las siguientes afirmaciones sobre las calorías quemadas por Mónica y Julio es verdadera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad de calorías quemadas por Mónica siempre disminuye."
+        },
+        {
+          "id": "B",
+          "texto": "La cantidad de calorías quemadas por Mónica crece con respecto al tiempo de manera lineal."
+        },
+        {
+          "id": "C",
+          "texto": "La cantidad de calorías quemadas por Julio siempre aumenta."
+        },
+        {
+          "id": "D",
+          "texto": "La cantidad de calorías quemadas por Julio decrece con respecto al tiempo de manera lineal."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "A una ballena le instalaron un aparato electrónico que emite una señal cada 6 segundos y, al mismo tiempo, se activó el equipo receptor de la señal que funciona cada 4 segundos. La persona que maneja el equipo receptor afirma que cada 30 segundos el equipo recibirá la señal que emite el aparato de la ballena."
+      ],
+      "materiales": [],
+      "pregunta": "¿Es verdadera la afirmación de la persona?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque 30 es un número par como el 4 y el 6."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque 30 es múltiplo de 6 pero no de 4."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque 30 es mayor que la multiplicación de 4 por 6."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque 30 es múltiplo de 4 pero no de 6."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Las coordenadas del centro de masa de un polígono se calculan sumando las respectivas coordenadas de sus vértices y dividiendo por la cantidad de estos. Por ejemplo, en un triángulo con vértices \\(P=(0,2)\\), \\(Q=(2,3)\\) y \\(R=(4,-1)\\), las coordenadas del centro de masa son: \\[ Coordenada } x = \\frac{\\text{suma de las coordenadas } x \\text{ de los vértices}}{3} = \\frac{0+2+4}{3}=2. \\] \\[ Coordenada } y = \\frac{\\text{suma de las coordenadas } y \\text{ de los vértices}}{3} = \\frac{2+3+(-1)}{3}=\\frac{4}{3}. \\] Así, el centro de masa del triángulo \\(PQR\\) es el punto \\(M=\\left(2,\\frac{4}{3}\\right)\\), como se muestra en la figura. Si los vértices de un cuadrilátero son los puntos \\(E=(1,0)\\), \\(F=(-1,5)\\), \\(G=(4,6)\\) y \\(H=(8,-1)\\),"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q14_calorias_trote",
+          "descripcion": "Calorías quemadas durante 30 minutos",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "Mónica",
+                  "data": [
+                    {
+                      "x": 5,
+                      "y": 10
+                    },
+                    {
+                      "x": 10,
+                      "y": 20
+                    },
+                    {
+                      "x": 15,
+                      "y": 30
+                    },
+                    {
+                      "x": 20,
+                      "y": 40
+                    },
+                    {
+                      "x": 25,
+                      "y": 51
+                    },
+                    {
+                      "x": 30,
+                      "y": 62
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Julio",
+                  "data": [
+                    {
+                      "x": 5,
+                      "y": 21
+                    },
+                    {
+                      "x": 10,
+                      "y": 52
+                    },
+                    {
+                      "x": 15,
+                      "y": 41
+                    },
+                    {
+                      "x": 20,
+                      "y": 72
+                    },
+                    {
+                      "x": 25,
+                      "y": 32
+                    },
+                    {
+                      "x": 30,
+                      "y": 82
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.2,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "bottom"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Tiempo (minutos)"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "Calorías"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿cuál de las siguientes figuras muestra el cuadrilátero \\(EFGH\\) con su centro de masa?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\centrado{\\figuraEFGH{3.5"
+        },
+        {
+          "id": "B",
+          "texto": "\\centrado{\\figuraEFGH{3"
+        },
+        {
+          "id": "C",
+          "texto": "\\centrado{\\figuraEFGH{3"
+        },
+        {
+          "id": "D",
+          "texto": "\\centrado{\\figuraEFGH{3.5"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Carlina planea invertir $1.000.000 en una cooperativa, y allí le ofrecen dos planes de ahorro: Plan 1. Cada 5 años se triplica la inversión. Plan 2. Cada 3 años se duplica la inversión. Carlina desea elegir el plan que le ofrece mayor rendimiento a 15 años."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuáles datos se deben calcular para escoger el plan de ahorro que le ofrece a Carlina un mayor rendimiento de su dinero a 15 años?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El número de veces que se triplica la inversión en 15 años y el número de veces que se duplica la inversión en 15 años."
+        },
+        {
+          "id": "B",
+          "texto": "El número de veces que se triplica la inversión en 15 años y el número de veces que se duplica la inversión en 3 años."
+        },
+        {
+          "id": "C",
+          "texto": "El número de veces que se triplica la inversión en 5 años y el número de veces que se duplica la inversión en 15 años."
+        },
+        {
+          "id": "D",
+          "texto": "El número de veces que se triplica la inversión en 5 años y el número de veces que se duplica la inversión en 3 años."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En clase de Física se está aprendiendo sobre el movimiento uniformemente acelerado (MUA). El profesor menciona que la posición de un cuerpo que sigue este movimiento puede modelarse por medio de la siguiente función cuadrática: \\[ f(x)=5x^2+1, \\] donde \\(x\\) representa el tiempo transcurrido en segundos, y \\(f(x)\\) la posición en dicho tiempo. Para conocer la posición del cuerpo en \\(x=3\\) segundos, un estudiante propone el siguiente procedimiento: Paso 1. En la función, cambiar la \\(x\\) por el valor del tiempo dado. Paso 2. Multiplicar el valor del tiempo por 2. Paso 3. Multiplicar por 5 el resultado del paso 2. Paso 4. Sumar 1 al resultado del paso 3. El docente le comunica al estudiante que hay un error en los pasos propuestos."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q16_centro_masa_triangulo",
+          "descripcion": "Centro de masa del triángulo de ejemplo",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "Vértices",
+                  "data": [
+                    {
+                      "x": 0,
+                      "y": 2
+                    },
+                    {
+                      "x": 2,
+                      "y": 3
+                    },
+                    {
+                      "x": 3.6,
+                      "y": -1
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Centro M",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": 1.33
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.2,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "bottom"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Opciones de centro de masa M",
+          "columnas": [
+            "Opción",
+            "Coordenadas de M"
+          ],
+          "filas": [
+            [
+              "A",
+              "(3,5; 3)"
+            ],
+            [
+              "B",
+              "(3; 3)"
+            ],
+            [
+              "C",
+              "(3; 2,5)"
+            ],
+            [
+              "D",
+              "(3,5; 3,4)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál de los pasos propuestos contiene el error?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El paso 1, porque la variable tiempo se debe reemplazar en los dos términos de la función."
+        },
+        {
+          "id": "B",
+          "texto": "El paso 2, porque el tiempo dado se debe multiplicar por sí mismo."
+        },
+        {
+          "id": "C",
+          "texto": "El paso 3, porque primero se debe sumar uno, y luego se debe multiplicar por cinco."
+        },
+        {
+          "id": "D",
+          "texto": "El paso 4, porque los términos de la función no son semejantes, y por tanto, no se pueden sumar."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra la ubicación de algunos lugares en una ciudad. Un distribuidor de ventiladores debe transportar un pedido desde la fábrica hasta la escuela, pero debe pasar por el hospital y la estación de policía. El distribuidor plantea el siguiente procedimiento para cumplir con el recorrido planteado, partiendo desde la fábrica. Paso 1. Recorrer 2 kilómetros hacia el sur. Paso 2. Recorrer 3 kilómetros hacia el oriente. Paso 3. Recorrer 1 kilómetro hacia el sur. Paso 4. Recorrer 4 kilómetros hacia el sur."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q17_mapa_ciudad",
+          "descripcion": "Mapa de la ciudad con lugares en el plano cartesiano",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "Hospital",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": 2
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Fábrica",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": 0
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Estación de policía",
+                  "data": [
+                    {
+                      "x": 5,
+                      "y": 1
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Museo",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": -2
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Gimnasio",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": -3
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                },
+                {
+                  "label": "Escuela",
+                  "data": [
+                    {
+                      "x": 5,
+                      "y": -3
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.2,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "bottom"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "x (km)"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y (km)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿En cuál paso del procedimiento hay un error?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el paso 4, porque debe recorrer 4 kilómetros hacia el norte."
+        },
+        {
+          "id": "B",
+          "texto": "En el paso 1, porque debe recorrer 2 kilómetros hacia el norte."
+        },
+        {
+          "id": "C",
+          "texto": "En el paso 3, porque debe recorrer 3 kilómetros hacia el norte."
+        },
+        {
+          "id": "D",
+          "texto": "En el paso 2, porque debe recorrer 4 kilómetros hacia el norte."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "No indicada",
+        "claveValidada": "No indicada",
+        "estado": "sin_clave_en_fuente",
+        "explicacion": "El archivo fuente no incluye una tabla de claves consolidada para esta pregunta."
+      }
+    }
+  ],
+  "resumenRespuestas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "claveFuente": "No indicada",
+      "claveValidada": "No indicada",
+      "estado": "sin_clave_en_fuente"
+    }
+  ],
+  "observacionesValidacion": [
+    {
+      "detalle": "Se identificaron 17 preguntas principales en el archivo fuente."
+    },
+    {
+      "detalle": "Se corrigió el tratamiento de valores monetarios para que no se conviertan accidentalmente en fórmulas LaTeX."
+    },
+    {
+      "detalle": "Se corrigió la extracción de tablas con llaves internas para evitar texto LaTeX residual en los enunciados."
+    },
+    {
+      "detalle": "El archivo fuente no incluye tabla de respuestas consolidada; por eso las claves quedaron como No indicada."
+    }
+  ]
+}

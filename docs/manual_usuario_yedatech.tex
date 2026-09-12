@@ -1,0 +1,1035 @@
+% ══════════════════════════════════════════════════════════════════════
+% MANUAL DE USUARIO — YedaTech: Tutor de Matemáticas con IA
+% Versión 1.0 — Marzo 2026
+% ══════════════════════════════════════════════════════════════════════
+\documentclass[12pt, a4paper, oneside]{book}
+
+% ─── PAQUETES ────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{fontawesome5}
+\usepackage{pifont}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{setspace}
+
+% ─── CONFIGURACIÓN DE PÁGINA ────────────────────────────────────────
+\geometry{
+    left=2.5cm, right=2.5cm,
+    top=2.5cm, bottom=2.5cm
+}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+% ─── COLORES DEL BRAND ──────────────────────────────────────────────
+\definecolor{yt-orange}{HTML}{FF6900}
+\definecolor{yt-dark}{HTML}{1A1A2E}
+\definecolor{yt-gray}{HTML}{2A2A3E}
+\definecolor{yt-green}{HTML}{10B981}
+\definecolor{yt-red}{HTML}{EF4444}
+\definecolor{yt-blue}{HTML}{6366F1}
+\definecolor{yt-cyan}{HTML}{06B6D4}
+\definecolor{yt-amber}{HTML}{F59E0B}
+\definecolor{yt-purple}{HTML}{8B5CF6}
+\definecolor{yt-lightbg}{HTML}{F8F9FA}
+
+% ─── HYPERREF ────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=yt-orange,
+    urlcolor=yt-blue,
+    citecolor=yt-green,
+    pdfauthor={YedaTech},
+    pdftitle={Manual de Usuario — YedaTech},
+    pdfsubject={Tutor de Matemáticas con Inteligencia Artificial},
+}
+
+% ─── HEADERS & FOOTERS ──────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{yt-orange}{\textbf{YedaTech}} \textcolor{gray}{| Manual de Usuario}}
+\fancyhead[R]{\textcolor{gray}{\thepage}}
+\fancyfoot[C]{\textcolor{gray}{\small Tutor de Matemáticas con IA — v1.0}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{yt-orange}\leaders\hrule height \headrulewidth\hfill}}
+
+% ─── TÍTULOS ─────────────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{yt-dark}}
+    {\textcolor{yt-orange}{\chaptertitlename\ \thechapter}}{20pt}{\Huge}
+\titleformat{\section}
+    {\normalfont\Large\bfseries\color{yt-dark}}
+    {\textcolor{yt-orange}{\thesection}}{1em}{}
+\titleformat{\subsection}
+    {\normalfont\large\bfseries\color{yt-gray}}
+    {\textcolor{yt-orange}{\thesubsection}}{1em}{}
+
+% ─── CAJAS PERSONALIZADAS ───────────────────────────────────────────
+\tcbuselibrary{skins, breakable}
+
+\newtcolorbox{notabox}[1][]{
+    colback=blue!5, colframe=yt-blue,
+    fonttitle=\bfseries, title={\faInfoCircle\ Nota}, #1,
+    breakable, arc=3pt, boxrule=1pt
+}
+
+\newtcolorbox{importantebox}[1][]{
+    colback=orange!5, colframe=yt-orange,
+    fonttitle=\bfseries, title={\faExclamationTriangle\ Importante}, #1,
+    breakable, arc=3pt, boxrule=1pt
+}
+
+\newtcolorbox{tipbox}[1][]{
+    colback=green!5, colframe=yt-green,
+    fonttitle=\bfseries, title={\faLightbulb\ Consejo}, #1,
+    breakable, arc=3pt, boxrule=1pt
+}
+
+\newtcolorbox{warningbox}[1][]{
+    colback=red!5, colframe=yt-red,
+    fonttitle=\bfseries, title={\faExclamationCircle\ Advertencia}, #1,
+    breakable, arc=3pt, boxrule=1pt
+}
+
+\newtcolorbox{stepbox}[1][]{
+    colback=yt-lightbg, colframe=yt-gray,
+    fonttitle=\bfseries\color{yt-orange}, #1,
+    breakable, arc=3pt, boxrule=0.5pt, left=8pt, right=8pt
+}
+
+% ─── LISTINGS ────────────────────────────────────────────────────────
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{yt-lightbg},
+    frame=single,
+    rulecolor=\color{yt-gray},
+    breaklines=true,
+    columns=fullflexible,
+}
+
+% ═════════════════════════════════════════════════════════════════════
+% DOCUMENTO
+% ═════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── PORTADA ─────────────────────────────────────────────────────────
+\begin{titlepage}
+    \begin{center}
+        \vspace*{2cm}
+
+        % Logo
+        \begin{tikzpicture}
+            \fill[yt-orange, rounded corners=12pt] (0,0) rectangle (3,3);
+            \node[white, font=\bfseries\Huge] at (1.5,1.5) {YT};
+        \end{tikzpicture}
+
+        \vspace{1.5cm}
+
+        {\Huge\bfseries\textcolor{yt-orange}{YedaTech}}\\[0.5cm]
+        {\LARGE\textcolor{yt-dark}{Tutor de Matemáticas con Inteligencia Artificial}}\\[0.3cm]
+        {\large\textcolor{gray}{Basado en el Método Socrático}}
+
+        \vspace{2cm}
+
+        \rule{0.6\textwidth}{1pt}\\[0.5cm]
+        {\Large\bfseries\textcolor{yt-dark}{Manual de Usuario}}\\[0.3cm]
+        {\large Versión 1.0}\\[0.3cm]
+        {\large Marzo 2026}\\[0.5cm]
+        \rule{0.6\textwidth}{1pt}
+
+        \vfill
+
+        {\large\textcolor{gray}{Sistema Multiagente de Tutoría Inteligente}}\\[0.3cm]
+        {\normalsize\textcolor{gray}{Powered by Google Gemini 2.0 Flash $\bullet$ Next.js 16 $\bullet$ Prisma 7}}
+
+        \vspace{1cm}
+    \end{center}
+\end{titlepage}
+
+% ─── TABLA DE CONTENIDOS ─────────────────────────────────────────────
+\tableofcontents
+\clearpage
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 1 — INTRODUCCIÓN
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Introducción}
+
+\section{¿Qué es YedaTech?}
+
+\textbf{YedaTech} es una plataforma educativa de tutoría inteligente que utiliza \textbf{inteligencia artificial} para enseñar matemáticas a estudiantes de grados 6° a 11° mediante el \textbf{método socrático}. En lugar de dar respuestas directas, el tutor guía al estudiante con preguntas que lo llevan a descubrir el conocimiento por sí mismo.
+
+El sistema integra un \textbf{arquitectura multiagente} compuesta por más de 20 agentes especializados que trabajan coordinadamente para ofrecer una experiencia de aprendizaje adaptativa, personalizada y en tiempo real.
+
+\section{Características Principales}
+
+\begin{itemize}[leftmargin=2em]
+    \item[\textcolor{yt-orange}{\faRobot}] \textbf{Tutor Socrático con IA} — Conversación guiada con Google Gemini 2.0 Flash.
+    \item[\textcolor{yt-green}{\faChartLine}] \textbf{Aprendizaje Adaptativo} — El sistema ajusta la dificultad en tiempo real.
+    \item[\textcolor{yt-blue}{\faClipboardCheck}] \textbf{Evaluación Diagnóstica} — Examen inicial para determinar el nivel del estudiante.
+    \item[\textcolor{yt-purple}{\faChartPie}] \textbf{Analítica Avanzada} — Gráficas detalladas de progreso y rendimiento.
+    \item[\textcolor{yt-cyan}{\faCalculator}] \textbf{Calculadora Científica y Graficadora} — Herramientas integradas en el tutor.
+    \item[\textcolor{yt-amber}{\faChalkboard}] \textbf{Pizarra Interactiva} — Dibuja procedimientos y el tutor los analiza con IA.
+    \item[\textcolor{yt-orange}{\faMicrophone}] \textbf{Entrada por Voz} — Dicta tus respuestas con reconocimiento de voz.
+    \item[\textcolor{yt-green}{\faCamera}] \textbf{Análisis de Imágenes} — Sube fotos de ejercicios y la IA los evalúa paso a paso.
+    \item[\textcolor{yt-blue}{\faVolumeUp}] \textbf{Texto a Voz} — El tutor puede leer sus respuestas en voz alta.
+    \item[\textcolor{yt-red}{\faComments}] \textbf{Chat Directo} — Comunicación en tiempo real entre Admin y Estudiante.
+    \item[\textcolor{yt-purple}{\faBook}] \textbf{Contenido Personalizado} — El admin sube material y genera evaluaciones con IA.
+    \item[\textcolor{yt-cyan}{\faUsers}] \textbf{Panel de Administración} — Gestión completa de estudiantes con analíticas.
+\end{itemize}
+
+\section{Roles del Sistema}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Rol} & \textbf{Acceso} & \textbf{Descripción} \\
+    \midrule
+    \textcolor{yt-orange}{\faCrown}\ Administrador & \texttt{/admin} & Gestiona estudiantes, contenido, mensajería y analíticas. Actúa como docente del sistema. \\
+    \textcolor{yt-green}{\faUserGraduate}\ Estudiante & \texttt{/login} & Accede al tutor, diagnóstico, analítica y mensajes. \\
+    \textcolor{yt-blue}{\faUserFriends}\ Padre/Acudiente & \texttt{/parent} & Consulta el progreso de su hijo/a (solo lectura). \\
+    \bottomrule
+\end{tabularx}
+\caption{Roles disponibles en el sistema YedaTech}
+\end{table}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 2 — ACCESO AL SISTEMA
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Acceso al Sistema}
+
+\section{Página de Inicio}
+
+Al ingresar a la plataforma (\texttt{http://localhost:3000}), se muestra la página de bienvenida con dos opciones principales:
+
+\begin{itemize}
+    \item \textbf{Iniciar Sesión} — Para usuarios ya registrados.
+    \item \textbf{Crear Cuenta} — Para nuevos estudiantes.
+\end{itemize}
+
+Si el usuario ya tiene una sesión activa, será redirigido automáticamente a su dashboard.
+
+\section{Registro de Estudiante}
+
+\begin{stepbox}[title={Pasos para crear una cuenta}]
+\begin{enumerate}
+    \item Acceder a \texttt{/register} o hacer clic en \textbf{``Crear Cuenta''}.
+    \item Completar los campos:
+    \begin{itemize}
+        \item \textbf{Nombre completo} — Nombre real del estudiante.
+        \item \textbf{Nombre de usuario} — Identificador único (sin espacios).
+        \item \textbf{Correo electrónico} — Dirección de email válida.
+        \item \textbf{Contraseña} — Mínimo 6 caracteres.
+    \end{itemize}
+    \item Hacer clic en \textbf{``Registrarse''}.
+    \item El sistema creará la cuenta con rol de \textbf{Estudiante}.
+\end{enumerate}
+\end{stepbox}
+
+\begin{notabox}
+    Solo se pueden registrar estudiantes desde la página pública. El rol de Administrador se maneja internamente con una contraseña maestra.
+\end{notabox}
+
+\section{Inicio de Sesión — Estudiante}
+
+\begin{stepbox}[title={Pasos para iniciar sesión}]
+\begin{enumerate}
+    \item Acceder a \texttt{/login}.
+    \item Ingresar \textbf{nombre de usuario o email} y \textbf{contraseña}.
+    \item Hacer clic en \textbf{``Iniciar Sesión''}.
+    \item El sistema redirige al \textbf{Dashboard del Estudiante} (\texttt{/dashboard}).
+\end{enumerate}
+\end{stepbox}
+
+\section{Inicio de Sesión — Administrador}
+
+\begin{stepbox}[title={Acceso al panel de administración}]
+\begin{enumerate}
+    \item Acceder a \texttt{/admin}.
+    \item Ingresar la \textbf{contraseña de administración}.
+    \item Hacer clic en \textbf{``Acceder al Panel''}.
+    \item El sistema redirige al \textbf{Panel de Administración} (\texttt{/admin/dashboard}).
+\end{enumerate}
+\end{stepbox}
+
+\begin{importantebox}
+    La contraseña de administrador se configura mediante la variable de entorno \texttt{ADMIN\_PASSWORD}. No se debe publicar ni usar un valor por defecto en producción.
+\end{importantebox}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 3 — PANEL DEL ESTUDIANTE
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Panel del Estudiante}
+
+El panel del estudiante es la interfaz principal donde el alumno interactúa con todos los módulos del sistema. Se accede mediante la ruta \texttt{/dashboard}.
+
+\section{Barra de Navegación}
+
+La barra superior incluye los siguientes enlaces:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Enlace} & \textbf{Ruta} & \textbf{Función} \\
+    \midrule
+    Dashboard & \texttt{/dashboard} & Página principal del estudiante \\
+    Tutor & \texttt{/tutor} & Chat con el tutor socrático de IA \\
+    Mensajes & \texttt{/mensajes} & Chat directo con el administrador \\
+    Diagnóstico & \texttt{/diagnostic} & Evaluación diagnóstica inicial \\
+    Analítica & \texttt{/analytics} & Estadísticas detalladas de progreso \\
+    \bottomrule
+\end{tabularx}
+\caption{Navegación del estudiante}
+\end{table}
+
+Además, en la esquina derecha se muestra:
+\begin{itemize}
+    \item El \textbf{nombre del estudiante}.
+    \item Su \textbf{grado escolar} (si fue asignado).
+    \item Su \textbf{nivel actual} en el sistema adaptativo.
+    \item Un botón de \textbf{``Salir''} para cerrar sesión.
+\end{itemize}
+
+\section{Dashboard Principal}
+
+\subsection{Tarjetas de Estadísticas}
+
+Al ingresar al dashboard, se muestran tarjetas informativas con los indicadores clave:
+
+\begin{itemize}
+    \item \textbf{Grado} — Grado escolar del estudiante (6° a 11°).
+    \item \textbf{Nivel Actual} — Nivel de dificultad en el sistema adaptativo (1--5).
+    \item \textbf{Respuestas Correctas} — Total acumulado de aciertos.
+    \item \textbf{Sesiones Completadas} — Cantidad de sesiones de tutoría.
+    \item \textbf{Precisión General} — Porcentaje de aciertos con barra de progreso visual.
+\end{itemize}
+
+\subsection{Gráficas Estilo McKinsey}
+
+El dashboard incluye visualizaciones de datos profesionales:
+
+\begin{enumerate}
+    \item \textbf{Gráfica de Gauge (Semicircular)} — Muestra la precisión general de 0\% a 100\%.
+    \item \textbf{Gráfica Donut} — Distribución de respuestas correctas vs.\ incorrectas.
+    \item \textbf{Anillos de Progreso (Progress Rings)} — Indicadores circulares de nivel, precisión, sesiones y total de aciertos.
+\end{enumerate}
+
+\subsection{Contenido del Profesor}
+
+Si el administrador ha subido contenido pedagógico, se muestran tarjetas con:
+\begin{itemize}
+    \item Título y tema del contenido.
+    \item Número de preguntas generadas por la IA.
+    \item Mejor puntaje obtenido y número de intentos.
+    \item Estado visual: \textcolor{yt-green}{\ding{51}} aprobado, \textcolor{yt-amber}{\ding{46}} en progreso, \textcolor{yt-orange}{\ding{228}} sin intentar.
+\end{itemize}
+
+Al hacer clic en una tarjeta, el estudiante accede a la \textbf{práctica de contenido} (\texttt{/content-practice/[id]}).
+
+\subsection{Acciones Rápidas}
+
+Tarjetas de acceso directo a los módulos principales:
+\begin{itemize}
+    \item \textbf{Evaluación Diagnóstica} — Iniciar o repetir el diagnóstico.
+    \item \textbf{Tutor Socrático} — Comenzar una sesión de tutoría con IA.
+    \item \textbf{Analítica Avanzada} — Ver estadísticas detalladas.
+\end{itemize}
+
+\subsection{Sidebar Informativa}
+
+Un panel lateral fijo muestra:
+\begin{itemize}
+    \item \textbf{Resumen Rápido} — Interacciones, correctas, incorrectas, estado del diagnóstico.
+    \item \textbf{Progreso de Nivel} — Barra de progreso hacia el siguiente nivel.
+    \item \textbf{Tip Educativo} — Dato sobre el método socrático.
+\end{itemize}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 4 — TUTOR SOCRÁTICO
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Tutor Socrático con IA}
+
+El módulo de tutoría es el corazón de YedaTech. Se accede mediante la ruta \texttt{/tutor}. Funciona como un chat inteligente entre el estudiante y el tutor de IA.
+
+\section{Método Socrático}
+
+El tutor \textbf{nunca da la respuesta directa}. En su lugar:
+\begin{enumerate}
+    \item Analiza la respuesta del estudiante.
+    \item Formula \textbf{preguntas guía} para dirigir el razonamiento.
+    \item Ofrece \textbf{pistas progresivas} cuando el estudiante tiene dificultades.
+    \item Celebra los aciertos y explica los errores de forma constructiva.
+\end{enumerate}
+
+\begin{tipbox}
+    Si te equivocas varias veces, el tutor te dará pistas cada vez más directas, pero siempre intentará que \textbf{tú} descubras la respuesta.
+\end{tipbox}
+
+\section{Flujo de Sesión}
+
+\begin{stepbox}[title={Sesión típica de tutoría}]
+\begin{enumerate}
+    \item Al entrar, el sistema \textbf{restaura la sesión activa} (si existe) o genera una \textbf{nueva pregunta adaptada a tu nivel}.
+    \item Se muestra el ejercicio con su \textbf{tema} y \textbf{nivel de dificultad}.
+    \item El estudiante escribe su respuesta (texto, voz, o imagen).
+    \item El tutor \textbf{evalúa la respuesta} con IA y responde.
+    \item Si la respuesta es correcta:
+    \begin{itemize}
+        \item Se registra el acierto.
+        \item Se genera una \textbf{nueva pregunta} (posiblemente de mayor dificultad).
+        \item Si la precisión es alta, el \textbf{nivel sube automáticamente}.
+    \end{itemize}
+    \item Si la respuesta es incorrecta:
+    \begin{itemize}
+        \item El tutor da una \textbf{pista socrática}.
+        \item El contador de intentos se incrementa.
+        \item Tras varios errores, el \textbf{nivel puede bajar} para reforzar conceptos.
+    \end{itemize}
+\end{enumerate}
+\end{stepbox}
+
+\section{Herramientas Integradas}
+
+El tutor dispone de múltiples herramientas accesibles durante la sesión:
+
+\subsection{Calculadora Científica}
+
+\begin{itemize}
+    \item Flotante: se activa con un botón y se puede arrastrar por la pantalla.
+    \item Funciones: operaciones básicas, trigonometría, logaritmos, raíces, potencias, constantes ($\pi$, $e$).
+    \item Historial: guarda los últimos cálculos realizados.
+    \item Modo oscuro: integrado con la estética de la plataforma.
+\end{itemize}
+
+\subsection{Calculadora Graficadora}
+
+\begin{itemize}
+    \item Grafica funciones matemáticas en un plano cartesiano interactivo.
+    \item Soporta múltiples funciones simultáneas con colores diferenciados.
+    \item Controles de zoom (acercar/alejar).
+    \item Cuadrícula y ejes con coordenadas visibles.
+    \item Funciones soportadas: $\sin$, $\cos$, $\tan$, $\log$, $\sqrt{x}$, $|x|$, potencias, etc.
+\end{itemize}
+
+\subsection{Pizarra Digital Interactiva}
+
+\begin{itemize}
+    \item Canvas de dibujo libre para resolver ejercicios a mano.
+    \item Herramientas: lápiz con múltiples colores, borrador, deshacer, limpiar.
+    \item Control de grosor del trazo.
+    \item Botón \textbf{``Analizar con IA''}: captura el dibujo y lo envía a Google Gemini para evaluación paso a paso de los procedimientos escritos a mano.
+    \item El tutor responde con retroalimentación detallada sobre el procedimiento escrito.
+\end{itemize}
+
+\begin{notabox}
+    La pizarra es especialmente útil para ejercicios donde necesitas mostrar procedimientos completos, como ecuaciones paso a paso o gráficas a mano alzada.
+\end{notabox}
+
+\subsection{Entrada por Voz (Speech-to-Text)}
+
+\begin{itemize}
+    \item Botón de micrófono junto al campo de texto.
+    \item Reconocimiento de voz en español usando la API del navegador.
+    \item Transcripción en tiempo real con resultados intermedios visibles.
+    \item El texto transcrito se inserta automáticamente en el campo de mensaje.
+\end{itemize}
+
+\subsection{Texto a Voz (Text-to-Speech)}
+
+\begin{itemize}
+    \item Cada respuesta del tutor tiene un botón \faVolumeUp\ para lectura en voz alta.
+    \item Usa la API de síntesis de voz del navegador.
+    \item Selecciona automáticamente una voz en español.
+    \item Control de velocidad de lectura.
+\end{itemize}
+
+\subsection{Subida de Imágenes}
+
+\begin{itemize}
+    \item Permite al estudiante subir una foto de un ejercicio resuelto en papel.
+    \item Formatos soportados: JPEG, PNG, WebP, GIF.
+    \item Tamaño máximo: 5 MB.
+    \item La imagen se envía a \textbf{Google Gemini 2.0 Flash} para análisis visual.
+    \item El tutor devuelve una \textbf{tarjeta de retroalimentación} con:
+    \begin{itemize}
+        \item Evaluación global (correcto/incorrecto).
+        \item Análisis paso a paso de los procedimientos detectados.
+        \item Identificación de errores con tipo y corrección sugerida.
+        \item Pregunta guía socrática.
+    \end{itemize}
+\end{itemize}
+
+\section{Panel de Progreso}
+
+Dentro del tutor, un panel lateral desplegable muestra:
+\begin{itemize}
+    \item \textbf{Precisión}, \textbf{correctas}, \textbf{total} y \textbf{nivel} actual.
+    \item \textbf{Dominio por tema}: barras de progreso por cada tema matemático evaluado, con porcentaje de maestría.
+    \item \textbf{Temas débiles} (necesitan refuerzo) marcados en rojo.
+    \item \textbf{Temas dominados} marcados en verde.
+    \item \textbf{Resumen de la última sesión} generado por IA.
+\end{itemize}
+
+\section{Renderizado Matemático}
+
+Todas las expresiones matemáticas se renderizan con \textbf{KaTeX}:
+\begin{itemize}
+    \item Fracciones: $\frac{a}{b}$
+    \item Raíces: $\sqrt{x}$, $\sqrt[3]{x}$
+    \item Exponentes: $x^{2}$
+    \item Integrales: $\int_{a}^{b} f(x)\,dx$
+    \item Sumatorias: $\sum_{i=1}^{n} i$
+    \item Matrices y sistemas de ecuaciones
+\end{itemize}
+
+El sistema convierte automáticamente las notaciones LaTeX en fórmulas visualmente legibles dentro del chat.
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 5 — EVALUACIÓN DIAGNÓSTICA
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Evaluación Diagnóstica}
+
+Se accede mediante \texttt{/diagnostic}. Es una evaluación inicial que determina el nivel de conocimiento del estudiante.
+
+\section{Propósito}
+
+\begin{itemize}
+    \item Identificar el nivel actual del estudiante.
+    \item Detectar fortalezas y debilidades temáticas.
+    \item Calibrar la dificultad de las preguntas del tutor.
+    \item Personalizar la experiencia de aprendizaje.
+\end{itemize}
+
+\section{Funcionamiento}
+
+\begin{stepbox}[title={Flujo de diagnóstico}]
+\begin{enumerate}
+    \item El sistema genera un examen con preguntas de \textbf{múltiples temas y niveles de dificultad}.
+    \item Las preguntas son \textbf{generadas por IA} según el grado del estudiante.
+    \item El estudiante responde cada pregunta dentro del tiempo asignado.
+    \item Al finalizar, se calcula:
+    \begin{itemize}
+        \item Puntaje general.
+        \item Precisión por tema.
+        \item Nivel recomendado.
+    \end{itemize}
+    \item Los resultados se almacenan y se reflejan en el dashboard y la analítica.
+\end{enumerate}
+\end{stepbox}
+
+\section{Repetir el Diagnóstico}
+
+El estudiante puede repetir la evaluación diagnóstica cuantas veces desee para medir su progreso. Cada intento se almacena en el historial.
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 6 — ANALÍTICA AVANZADA
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Analítica Avanzada}
+
+Se accede mediante \texttt{/analytics}. Proporciona visualizaciones detalladas del rendimiento del estudiante.
+
+\section{Métricas Disponibles}
+
+\begin{itemize}
+    \item \textbf{Precisión general} — Porcentaje de aciertos acumulado.
+    \item \textbf{Distribución de respuestas} — Gráfica donut con correctas vs.\ incorrectas.
+    \item \textbf{Progreso por tema} — Barras de progreso individuales para cada tema matemático.
+    \item \textbf{Historial de sesiones} — Lista cronológica de sesiones con puntuación de cada una.
+    \item \textbf{Historial de diagnósticos} — Resultados de cada evaluación diagnóstica realizada.
+    \item \textbf{Evolución del nivel} — Cómo ha cambiado el nivel del estudiante a lo largo del tiempo.
+\end{itemize}
+
+\section{Tipos de Gráficas}
+
+El sistema implementa gráficas profesionales estilo consultora:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l X}
+    \toprule
+    \textbf{Tipo} & \textbf{Uso} \\
+    \midrule
+    Gauge (semicircular) & Precisión general (0--100\%) \\
+    Donut & Distribución correctas/incorrectas \\
+    Barras verticales & Comparativas entre temas o sesiones \\
+    Barras horizontales & Ranking de rendimiento por tema \\
+    Barras apiladas & Correctas + incorrectas por categoría \\
+    Anillos de progreso & Indicadores individuales compactos \\
+    \bottomrule
+\end{tabularx}
+\caption{Tipos de gráficas disponibles en el sistema}
+\end{table}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 7 — SISTEMA DE MENSAJERÍA
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Sistema de Mensajería (Chat)}
+
+YedaTech incluye un sistema de \textbf{mensajería directa en tiempo real} entre el Administrador y los Estudiantes.
+
+\section{Arquitectura de Rutas}
+
+\begin{importantebox}
+    Las rutas de mensajería están \textbf{completamente separadas} por rol para evitar confusión de interfaces:
+\end{importantebox}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Rol} & \textbf{Ruta} & \textbf{Descripción} \\
+    \midrule
+    Administrador & \texttt{/admin/mensajes} & Chat con navbar de Admin Panel \\
+    Estudiante & \texttt{/mensajes} & Chat con navbar de YedaTech (estudiante) \\
+    \bottomrule
+\end{tabularx}
+\caption{Rutas de mensajería por rol}
+\end{table}
+
+\section{Funcionalidades del Chat}
+
+\subsection{Tipos de Mensaje}
+
+\begin{itemize}
+    \item \textbf{Texto} — Mensajes escritos convencionales.
+    \item \textbf{Imágenes} — Envío de capturas, ejercicios, fotos (máx.\ 5 MB).
+    \item \textbf{Archivos} — PDF, DOC, DOCX (máx.\ 10 MB).
+\end{itemize}
+
+\subsection{Indicadores de Estado}
+
+\begin{itemize}
+    \item \textbf{\ding{51}} — Mensaje enviado.
+    \item \textbf{\ding{51}\ding{51}} — Mensaje leído por el destinatario.
+    \item \textbf{Hora de envío} — Visible en cada burbuja de mensaje.
+    \item \textbf{Badge de no leídos} — Contador en la barra de navegación y en la lista de conversaciones.
+\end{itemize}
+
+\subsection{Polling en Tiempo Real}
+
+Los mensajes se actualizan automáticamente cada 3 segundos mediante polling. La lista de conversaciones se refresca cada 10 segundos.
+
+\section{Chat desde el Lado del Estudiante}
+
+\begin{stepbox}[title={Enviar un mensaje al administrador}]
+\begin{enumerate}
+    \item Desde el dashboard, hacer clic en \textbf{``Mensajes''} en la barra de navegación.
+    \item En la sidebar izquierda, seleccionar la conversación con el administrador.
+    \item Escribir el mensaje en el campo inferior.
+    \item (Opcional) Adjuntar un archivo o imagen con el botón 📎.
+    \item Hacer clic en \textbf{``Enviar''} o presionar \textbf{Enter}.
+\end{enumerate}
+\end{stepbox}
+
+\section{Chat desde el Lado del Administrador}
+
+\begin{stepbox}[title={Iniciar un chat con un estudiante}]
+\begin{enumerate}
+    \item En el panel de admin (\texttt{/admin/dashboard}), ir a la sección \textbf{``Comunicación Directa''}.
+    \item Buscar al estudiante por \textbf{nombre}, \textbf{usuario} o \textbf{email}.
+    \item Filtrar por \textbf{grado} usando las pestañas rápidas (6° a 11°) o el selector desplegable.
+    \item Hacer clic en el botón \textbf{``Chat''} junto al estudiante deseado.
+    \item El sistema redirige a \texttt{/admin/mensajes} con la conversación activa.
+\end{enumerate}
+\end{stepbox}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 8 — PANEL DE ADMINISTRACIÓN
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Panel de Administración}
+
+El administrador accede a un panel completo de gestión desde \texttt{/admin/dashboard}. La navegación del panel incluye tres secciones principales:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Pestaña} & \textbf{Ruta} & \textbf{Función} \\
+    \midrule
+    Estudiantes & \texttt{/admin/dashboard} & Lista, búsqueda y analítica de estudiantes \\
+    Contenidos & \texttt{/admin/content} & Subida de material y generación de evaluaciones \\
+    Mensajes & \texttt{/admin/mensajes} & Chat con estudiantes \\
+    \bottomrule
+\end{tabularx}
+\caption{Secciones del panel de administración}
+\end{table}
+
+\section{Gestión de Estudiantes}
+
+\subsection{Búsqueda y Filtrado}
+
+El admin puede buscar estudiantes mediante:
+\begin{itemize}
+    \item \textbf{Búsqueda por texto} — Nombre, usuario o email.
+    \item \textbf{Filtro por grado} — Pestañas rápidas: Todos, 6°, 7°, 8°, 9°, 10°, 11°, Sin grado.
+    \item \textbf{Ordenamiento} — Por fecha de registro, nombre, nivel, sesiones o último acceso.
+\end{itemize}
+
+\subsection{Gráficas de Rendimiento Global}
+
+El panel muestra gráficas del rendimiento agregado:
+\begin{itemize}
+    \item \textbf{Gráfica de barras} — Sesiones completadas por estudiante activo.
+    \item \textbf{Barras horizontales} — Precisión porcentual por estudiante.
+    \item \textbf{Conteo por grado} — Distribución de estudiantes por grado escolar.
+\end{itemize}
+
+\subsection{Tabla de Estudiantes}
+
+Una tabla detallada muestra para cada estudiante:
+\begin{itemize}
+    \item Nombre y usuario.
+    \item Grado escolar.
+    \item Padre/Acudiente (nombre y email).
+    \item Nivel en el sistema.
+    \item Estado del diagnóstico (pendiente / completado con puntaje).
+    \item Número de sesiones e interacciones.
+    \item Fecha de registro y último acceso.
+    \item Botón para ver detalle individual.
+\end{itemize}
+
+\subsection{Detalle de Estudiante}
+
+Al hacer clic en \textbf{``Ver detalle''}, se accede a \texttt{/admin/student/[id]} que muestra:
+\begin{itemize}
+    \item Perfil completo del estudiante.
+    \item Historial de sesiones con puntajes.
+    \item Resultados de diagnósticos.
+    \item Dominio por tema.
+    \item Información del padre/acudiente.
+\end{itemize}
+
+\section{Comunicación Directa}
+
+Sección integrada en el dashboard que permite:
+\begin{itemize}
+    \item Buscar estudiantes por nombre, usuario o email.
+    \item Filtrar por grado con tabs rápidos (con conteo de estudiantes por grado).
+    \item Abrir chat con un clic.
+    \item Ver contador de mensajes no leídos.
+    \item Enlace directo a la vista de mensajes (\texttt{/admin/mensajes}).
+\end{itemize}
+
+\section{Gestión de Contenidos}
+
+Desde \texttt{/admin/content}, el administrador puede:
+
+\subsection{Subir Contenido Pedagógico}
+
+\begin{stepbox}[title={Subir material educativo}]
+\begin{enumerate}
+    \item Hacer clic en \textbf{``Nuevo Contenido''}.
+    \item Completar:
+    \begin{itemize}
+        \item \textbf{Título} — Nombre descriptivo del contenido.
+        \item \textbf{Tema} — Categoría matemática (álgebra, geometría, etc.).
+        \item \textbf{Grado} — Grado escolar objetivo.
+        \item \textbf{Contenido} — Texto con la explicación, teoría o ejercicios.
+        \item \textbf{Documentos} — (Opcional) Archivo PDF o documento de apoyo.
+    \end{itemize}
+    \item Hacer clic en \textbf{``Guardar''}.
+\end{enumerate}
+\end{stepbox}
+
+\subsection{Generación Automática de Preguntas}
+
+Una vez subido el contenido:
+\begin{enumerate}
+    \item El sistema utiliza \textbf{Google Gemini} para analizar el documento.
+    \item Genera automáticamente preguntas de evaluación basadas \textbf{exclusivamente} en el contenido proporcionado.
+    \item Las preguntas incluyen opciones múltiples correctamente formuladas.
+    \item El admin puede revisar, editar o regenerar las preguntas.
+\end{enumerate}
+
+\begin{importantebox}
+    El sistema de generación tiene \textbf{fidelidad documental al 100\%}: todas las preguntas se derivan estrictamente del material subido, sin inventar datos o conceptos externos.
+\end{importantebox}
+
+\subsection{Práctica de Contenido para Estudiantes}
+
+Los estudiantes acceden a las evaluaciones desde su dashboard y pueden:
+\begin{itemize}
+    \item Responder las preguntas generadas.
+    \item Ver su puntaje al finalizar.
+    \item Repetir la evaluación para mejorar.
+    \item El mejor puntaje se refleja en la tarjeta del dashboard.
+\end{itemize}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 9 — SISTEMA MULTIAGENTE
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Arquitectura Multiagente}
+
+YedaTech funciona con un sistema de \textbf{22 agentes especializados} que trabajan coordinadamente:
+
+\section{Agentes Principales}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l X}
+    \toprule
+    \textbf{Agente} & \textbf{Función} \\
+    \midrule
+    Router & Dirige las solicitudes al agente apropiado \\
+    Socratic Tutor & Genera respuestas pedagógicas con el método socrático \\
+    Evaluator & Evalúa si la respuesta del estudiante es correcta \\
+    Answer Analyzer & Analiza las respuestas con contexto detallado \\
+    Adaptive & Ajusta el nivel de dificultad basado en el rendimiento \\
+    Exam Generator & Genera preguntas de diagnóstico adaptadas al nivel \\
+    Academic Diagnostic & Administra la evaluación diagnóstica completa \\
+    Memory Agent & Gestiona la memoria de sesión y persistencia \\
+    Session Summary & Genera resúmenes de sesión \\
+    Telemetry & Registra datos de interacción y rendimiento \\
+    Image Analyzer & Analiza imágenes de ejercicios con Google Gemini Vision \\
+    Image Evaluator & Evalúa procedimientos paso a paso en imágenes \\
+    Document Analyzer & Analiza documentos PDF subidos por el admin \\
+    Content Question Generator & Genera preguntas a partir de contenido pedagógico \\
+    Content Validator & Valida la fidelidad de las preguntas generadas \\
+    Content Evaluator & Evalúa las respuestas de práctica de contenido \\
+    Content Report Agent & Genera reportes de uso de contenido \\
+    Group Report Agent & Genera reportes grupales de rendimiento \\
+    Admin Analytics & Procesa analíticas para el panel de administración \\
+    Learning Recommendations & Genera recomendaciones personalizadas \\
+    Message Agent & Gestiona el sistema de mensajería directa \\
+    Notification Agent & Calcula conteos de mensajes no leídos \\
+    \bottomrule
+\end{tabularx}
+\caption{Agentes del sistema multiagente}
+\end{table}
+
+\section{Flujo de Orquestación}
+
+\begin{enumerate}
+    \item El estudiante envía un mensaje al tutor.
+    \item El \textbf{Router} identifica la intención y dirige al agente apropiado.
+    \item El \textbf{Socratic Tutor} genera la respuesta pedagógica.
+    \item El \textbf{Evaluator} determina si la respuesta es correcta.
+    \item El \textbf{Adaptive} ajusta el nivel si es necesario.
+    \item El \textbf{Telemetry} registra la interacción.
+    \item El \textbf{Memory Agent} guarda el contexto de la sesión.
+    \item La respuesta final se devuelve al estudiante.
+\end{enumerate}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 10 — ACCESO PARA PADRES
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Acceso para Padres/Acudientes}
+
+Los padres o acudientes pueden consultar el progreso de su hijo/a mediante la ruta \texttt{/parent}.
+
+\section{Funcionalidades}
+
+\begin{itemize}
+    \item \textbf{Registro independiente} — Se vincula al estudiante mediante código o selección.
+    \item \textbf{Vista de progreso} — Nivel, precisión, sesiones, diagnóstico.
+    \item \textbf{Solo lectura} — No pueden modificar datos ni interactuar con el tutor.
+    \item \textbf{Información visible en admin} — El admin ve los datos del padre en la tabla de estudiantes.
+\end{itemize}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 11 — REQUISITOS TÉCNICOS
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Requisitos Técnicos}
+
+\section{Para el Usuario Final}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l X}
+    \toprule
+    \textbf{Requisito} & \textbf{Detalle} \\
+    \midrule
+    Navegador & Google Chrome, Microsoft Edge, Safari o Firefox (versión reciente) \\
+    Conexión & Internet estable para comunicación con la IA \\
+    Micrófono & (Opcional) Para entrada por voz \\
+    Cámara/Archivos & (Opcional) Para subida de imágenes de ejercicios \\
+    Resolución mínima & 1024 × 768 px \\
+    \bottomrule
+\end{tabularx}
+\caption{Requisitos del usuario final}
+\end{table}
+
+\section{Stack Tecnológico}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Tecnología} & \textbf{Versión} & \textbf{Propósito} \\
+    \midrule
+    Next.js & 16.1.6 & Framework web (React 19) con Turbopack \\
+    Prisma & 7.4.2 & ORM para base de datos \\
+    SQLite & --- & Base de datos local (desarrollo) \\
+    NextAuth.js & 4.x & Autenticación de usuarios \\
+    Google Gemini & 2.0 Flash & Motor de inteligencia artificial \\
+    KaTeX & --- & Renderizado de expresiones matemáticas \\
+    bcryptjs & 3.x & Hash de contraseñas \\
+    \bottomrule
+\end{tabularx}
+\caption{Stack tecnológico del sistema}
+\end{table}
+
+\section{Variables de Entorno}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l X}
+    \toprule
+    \textbf{Variable} & \textbf{Descripción} \\
+    \midrule
+    \texttt{GEMINI\_API\_KEY} & Clave de API de Google Gemini \\
+    \texttt{NEXTAUTH\_SECRET} & Secreto para la autenticación de sesiones \\
+    \texttt{NEXTAUTH\_URL} & URL base del sitio (ej: \texttt{http://localhost:3000}) \\
+    \texttt{ADMIN\_PASSWORD} & Contraseña de acceso al panel de administración \\
+    \texttt{DATABASE\_URL} & URL de conexión a la base de datos \\
+    \bottomrule
+\end{tabularx}
+\caption{Variables de entorno requeridas}
+\end{table}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% CAPÍTULO 12 — PREGUNTAS FRECUENTES
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Preguntas Frecuentes}
+
+\begin{enumerate}[leftmargin=2em, label=\textcolor{yt-orange}{\textbf{Q\arabic*.}}]
+
+    \item \textbf{¿El tutor me dará las respuestas si no sé resolver el ejercicio?}
+
+    No. El tutor usa el método socrático, lo que significa que te hará preguntas cada vez más directas para guiarte, pero nunca te dará la respuesta directamente (a menos que lleves muchos intentos fallidos).
+
+    \item \textbf{¿Puedo usar la calculadora durante la tutoría?}
+
+    Sí. La calculadora científica y la graficadora están siempre disponibles como herramientas flotantes dentro del tutor.
+
+    \item \textbf{¿Qué pasa si subo una imagen borrosa?}
+
+    La IA intentará analizarla, pero si la calidad es muy baja, podría no detectar correctamente los procedimientos. Se recomienda buena iluminación y letra legible.
+
+    \item \textbf{¿Cómo sabe el sistema qué preguntas hacerme?}
+
+    El agente adaptativo analiza tu historial completo: precisión, temas débiles, velocidad de respuesta y nivel actual. Con esa información, genera preguntas que refuerzan tus debilidades y mantienen el desafío.
+
+    \item \textbf{¿El administrador puede ver mis conversaciones con el tutor?}
+
+    El administrador puede ver tus estadísticas, puntajes y sesiones desde su panel, pero las conversaciones del chat directo son solo entre tú y el admin.
+
+    \item \textbf{¿Cómo sé si el admin me envió un mensaje?}
+
+    Un badge naranja con el número de mensajes no leídos aparecerá en el enlace ``Mensajes'' de tu barra de navegación.
+
+    \item \textbf{¿Puedo repetir el diagnóstico?}
+
+    Sí, puedes repetirlo cuantas veces quieras. Cada intento se almacena en tu historial para medir tu progreso.
+
+    \item \textbf{¿Qué significan los niveles (1--5)?}
+
+    \begin{itemize}
+        \item \textbf{Nivel 1} — Básico (operaciones fundamentales).
+        \item \textbf{Nivel 2} — Intermedio bajo (álgebra introductoria).
+        \item \textbf{Nivel 3} — Intermedio (ecuaciones y geometría).
+        \item \textbf{Nivel 4} — Avanzado (funciones y trigonometría).
+        \item \textbf{Nivel 5} — Experto (cálculo y análisis).
+    \end{itemize}
+
+\end{enumerate}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% APÉNDICE A — MAPA DE RUTAS
+% ═════════════════════════════════════════════════════════════════════
+\appendix
+\chapter{Mapa de Rutas del Sistema}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Ruta} & \textbf{Acceso} & \textbf{Descripción} \\
+    \midrule
+    \texttt{/} & Público & Página de bienvenida \\
+    \texttt{/login} & Público & Inicio de sesión de estudiantes \\
+    \texttt{/register} & Público & Registro de nuevos estudiantes \\
+    \midrule
+    \texttt{/dashboard} & Estudiante & Dashboard principal del estudiante \\
+    \texttt{/tutor} & Estudiante & Chat con el tutor socrático de IA \\
+    \texttt{/diagnostic} & Estudiante & Evaluación diagnóstica \\
+    \texttt{/analytics} & Estudiante & Analítica avanzada \\
+    \texttt{/mensajes} & Estudiante & Chat con el administrador \\
+    \texttt{/content-practice/[id]} & Estudiante & Práctica de contenido pedagógico \\
+    \midrule
+    \texttt{/admin} & Admin & Login del administrador \\
+    \texttt{/admin/dashboard} & Admin & Panel de gestión de estudiantes \\
+    \texttt{/admin/content} & Admin & Gestión de contenidos pedagógicos \\
+    \texttt{/admin/mensajes} & Admin & Chat con estudiantes \\
+    \texttt{/admin/student/[id]} & Admin & Detalle de un estudiante \\
+    \texttt{/admin/group-report} & Admin & Reportes grupales \\
+    \midrule
+    \texttt{/parent} & Padre & Consulta de progreso del hijo/a \\
+    \bottomrule
+\end{tabularx}
+\caption{Mapa completo de rutas del sistema}
+\end{table}
+
+
+% ═════════════════════════════════════════════════════════════════════
+% APÉNDICE B — GLOSARIO
+% ═════════════════════════════════════════════════════════════════════
+\chapter{Glosario}
+
+\begin{description}[style=nextline, leftmargin=2cm]
+    \item[Agente] Componente de software especializado que realiza una tarea específica dentro del sistema.
+    \item[Aprendizaje Adaptativo] Metodología donde el sistema ajusta automáticamente la dificultad según el rendimiento del estudiante.
+    \item[Bearer Token] Método de autenticación donde se envía un token (contraseña) en el encabezado de la petición HTTP.
+    \item[Dashboard] Panel principal con resumen visual de información.
+    \item[Evaluación Diagnóstica] Examen inicial que determina el nivel de conocimiento del estudiante.
+    \item[Gemini] Modelo de inteligencia artificial de Google utilizado para generar respuestas, analizar imágenes y crear preguntas.
+    \item[KaTeX] Biblioteca de renderizado de fórmulas matemáticas en formato LaTeX.
+    \item[Método Socrático] Técnica de enseñanza basada en hacer preguntas para guiar al estudiante al descubrimiento del conocimiento.
+    \item[Multiagente] Arquitectura donde múltiples agentes especializados colaboran para lograr un objetivo complejo.
+    \item[NextAuth] Biblioteca de autenticación para Next.js que gestiona sesiones de usuario.
+    \item[Nivel] Grado de dificultad de las preguntas (1=básico a 5=experto).
+    \item[Polling] Técnica de actualización periódica donde el cliente consulta al servidor cada cierto intervalo de tiempo.
+    \item[Prisma] ORM (Object-Relational Mapping) que facilita la interacción con la base de datos.
+    \item[Sesión] Período continuo de interacción del estudiante con el tutor de IA.
+    \item[Telemetría] Recolección y registro de datos de uso y rendimiento del estudiante.
+\end{description}
+
+\end{document}

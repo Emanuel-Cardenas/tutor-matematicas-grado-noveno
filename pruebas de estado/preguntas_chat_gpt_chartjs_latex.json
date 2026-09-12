@@ -1,0 +1,2907 @@
+{
+  "titulo": "preguntas chat gpt",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.1",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas dentro de textos, preguntas, opciones, tablas y explicaciones se delimitan con LaTeX.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON; los valores matemáticos o unidades dentro de las tablas se escriben en LaTeX cuando aplica.",
+    "graficos": "Los gráficos y figuras están representados como configuraciones de Chart.js. Las figuras que Chart.js no dibuja de forma nativa usan el plugin canvasShapesPlugin incluido en este mismo JSON.",
+    "respuestas": "claveFuente proviene de la clave comentada en el archivo original; claveValidada es la clave revisada matemáticamente cuando aplica.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Para moneda dentro de LaTeX se usa \\$."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar figuras geométricas, rectas numéricas, triángulos, etiquetas y elementos auxiliares sobre un canvas de Chart.js.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n\n    function applyStyle(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n\n    function drawArrowHead(x1, y1, x2, y2, size = 6) {\n      const angle = Math.atan2(y2 - y1, x2 - x1);\n      ctx.beginPath();\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));\n      ctx.stroke();\n    }\n\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      applyStyle(shape);\n\n      if (shape.type === \"text\") {\n        ctx.fillStyle = shape.fill ?? \"#000000\";\n        ctx.fillText(shape.text, x(shape.x), y(shape.y));\n      }\n\n      if (shape.type === \"rectangle\") {\n        const left = x(shape.x);\n        const top = y(shape.y + shape.height);\n        const width = x(shape.x + shape.width) - x(shape.x);\n        const height = y(shape.y) - y(shape.y + shape.height);\n        ctx.beginPath();\n        ctx.rect(left, top, width, height);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"line\") {\n        ctx.beginPath();\n        ctx.moveTo(x(shape.x1), y(shape.y1));\n        ctx.lineTo(x(shape.x2), y(shape.y2));\n        ctx.stroke();\n        if (shape.arrowStart) drawArrowHead(x(shape.x2), y(shape.y2), x(shape.x1), y(shape.y1), shape.arrowSize ?? 6);\n        if (shape.arrowEnd) drawArrowHead(x(shape.x1), y(shape.y1), x(shape.x2), y(shape.y2), shape.arrowSize ?? 6);\n      }\n\n      if (shape.type === \"polygon\") {\n        ctx.beginPath();\n        shape.points.forEach((point, index) => {\n          const px = x(point[0]);\n          const py = y(point[1]);\n          if (index === 0) ctx.moveTo(px, py);\n          else ctx.lineTo(px, py);\n        });\n        ctx.closePath();\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"arc\") {\n        ctx.beginPath();\n        ctx.arc(x(shape.x), y(shape.y), dx(shape.r), shape.startAngle ?? 0, shape.endAngle ?? Math.PI * 2, shape.anticlockwise ?? false);\n        if (shape.closePath) {\n          ctx.lineTo(x(shape.x), y(shape.y));\n          ctx.closePath();\n        }\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"tick\") {\n        ctx.beginPath();\n        ctx.moveTo(x(shape.x), y(shape.y1));\n        ctx.lineTo(x(shape.x), y(shape.y2));\n        ctx.stroke();\n      }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una clínica, una persona tiene asignado el turno \\(140\\). Cuando están atendiendo el turno \\(68\\), decide estimar el tiempo que debe esperar. En la clínica hay \\(6\\) ventanillas atendiendo al público y el tiempo promedio de atención por persona es de \\(5\\) minutos.",
+        "Procedimiento: Paso 1. Cuenta la cantidad de turnos que hay entre el turno que están atendiendo y el suyo. Paso 2. Divide esa cantidad entre el número de ventanillas disponibles. Paso 3. Multiplica el resultado anterior por el tiempo promedio de atención por persona."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el tiempo estimado de espera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(36\\) minutos."
+        },
+        {
+          "id": "B",
+          "texto": "\\(60\\) minutos."
+        },
+        {
+          "id": "C",
+          "texto": "\\(72\\) minutos."
+        },
+        {
+          "id": "D",
+          "texto": "\\(120\\) minutos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La diferencia de turnos es \\(140-68=72\\). Con \\(6\\) ventanillas: \\(72/6=12\\) grupos de atención. Cada grupo tarda \\(5\\) minutos, entonces \\(12\\times 5=60\\) minutos."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un laboratorio se mide la concentración de una sustancia en un recipiente después de mezclarla con diferentes cantidades de agua. La tabla muestra los resultados obtenidos."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Concentración según litros de agua",
+          "columnas": [
+            "Litros de agua",
+            "Concentración de la sustancia"
+          ],
+          "filas": [
+            [
+              "\\(2\\)",
+              "\\(120\\ \\text{mg/L}\\)"
+            ],
+            [
+              "\\(3\\)",
+              "\\(80\\ \\text{mg/L}\\)"
+            ],
+            [
+              "\\(4\\)",
+              "\\(60\\ \\text{mg/L}\\)"
+            ],
+            [
+              "\\(6\\)",
+              "\\(40\\ \\text{mg/L}\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "De acuerdo con la información de la tabla, ¿cuál de las siguientes afirmaciones es verdadera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La concentración aumenta cuando aumenta la cantidad de agua."
+        },
+        {
+          "id": "B",
+          "texto": "La concentración se mantiene constante para cualquier cantidad de agua."
+        },
+        {
+          "id": "C",
+          "texto": "Hay una relación inversamente proporcional entre los litros de agua y la concentración."
+        },
+        {
+          "id": "D",
+          "texto": "Hay una relación directamente proporcional entre los litros de agua y la concentración."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "El producto entre litros de agua y concentración es constante: \\(2\\cdot120=3\\cdot80=4\\cdot60=6\\cdot40=240\\)."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una librería, el precio de cada cuaderno depende de la cantidad que compre el cliente: si compra \\(1\\), cada uno cuesta \\(\\$3.200\\); si compra \\(2\\), cada uno cuesta \\(\\$3.000\\); si compra \\(3\\), cada uno cuesta \\(\\$2.800\\). Por cada cuaderno adicional, el precio de cada cuaderno disminuye \\(\\$200\\). Cada cliente puede comprar entre \\(1\\) y \\(8\\) cuadernos.",
+        "El administrador propone la fórmula \\(y=3.400-200x\\), donde \\(y\\) es el precio de cada cuaderno y \\(x\\) la cantidad de cuadernos comprados."
+      ],
+      "materiales": [],
+      "pregunta": "Sobre la fórmula propuesta, ¿cuál afirmación es verdadera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Es incorrecta, porque si \\(x=1\\) el precio debería ser \\(\\$3.400\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Es incorrecta, porque la relación entre cantidad y precio debe ser exponencial."
+        },
+        {
+          "id": "C",
+          "texto": "Es correcta, porque permite obtener los precios indicados para las cantidades dadas."
+        },
+        {
+          "id": "D",
+          "texto": "Es correcta, porque si no se compran cuadernos el precio debe ser \\(\\$3.200\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Para \\(x=1\\), \\(y=3.200\\); para \\(x=2\\), \\(y=3.000\\); para \\(x=3\\), \\(y=2.800\\). Coincide con la información."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para una actividad de Ciencias, Laura registra la edad y la estatura de \\(7\\) niños de un grupo escolar."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Edad y estatura de niños",
+          "columnas": [
+            "Niño",
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G"
+          ],
+          "filas": [
+            [
+              "Edad (años)",
+              "\\(8\\)",
+              "\\(9\\)",
+              "\\(10\\)",
+              "\\(11\\)",
+              "\\(12\\)",
+              "\\(13\\)",
+              "\\(14\\)"
+            ],
+            [
+              "Estatura (cm)",
+              "\\(126\\)",
+              "\\(130\\)",
+              "\\(134\\)",
+              "\\(139\\)",
+              "\\(143\\)",
+              "\\(148\\)",
+              "\\(151\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Laura afirma que, en los datos registrados, a mayor edad, mayor es la estatura. ¿Es correcta la afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque la estatura aumenta siempre en la misma cantidad."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque al aumentar la edad también aumenta la estatura."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque la edad aumenta pero la estatura disminuye."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque todos los niños tienen la misma estatura."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "En la tabla, cuando la edad aumenta de \\(8\\) a \\(14\\), la estatura también aumenta de \\(126\\) a \\(151\\)."
+      }
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra la información de venta de algunos productos de una tienda."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Información de venta",
+          "columnas": [
+            "Producto",
+            "Precio base",
+            "Impuesto",
+            "Descuento",
+            "Precio final"
+          ],
+          "filas": [
+            [
+              "A",
+              "\\(\\$30.000\\)",
+              "\\(\\$4.500\\)",
+              "\\(\\$3.000\\)",
+              "\\(\\$31.500\\)"
+            ],
+            [
+              "B",
+              "\\(\\$50.000\\)",
+              "\\(\\$7.500\\)",
+              "\\(\\$5.000\\)",
+              "\\(\\$52.500\\)"
+            ],
+            [
+              "C",
+              "\\(\\$80.000\\)",
+              "\\(\\$12.000\\)",
+              "\\(\\$10.000\\)",
+              "\\(\\$82.000\\)"
+            ],
+            [
+              "D",
+              "\\(\\$100.000\\)",
+              "\\(\\$15.000\\)",
+              "\\(\\$20.000\\)",
+              "\\(\\$95.000\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "De acuerdo con la tabla, ¿cuál expresión permite calcular el precio final de cada producto?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Precio final = Precio base \\(-\\) Impuesto \\(-\\) Descuento."
+        },
+        {
+          "id": "B",
+          "texto": "Precio final = Precio base \\(+\\) Impuesto \\(-\\) Descuento."
+        },
+        {
+          "id": "C",
+          "texto": "Precio final = Precio base \\(-\\) Impuesto \\(+\\) Descuento."
+        },
+        {
+          "id": "D",
+          "texto": "Precio final = Precio base \\(+\\) Impuesto \\(+\\) Descuento."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Por ejemplo, para A: \\(30.000+4.500-3.000=31.500\\)."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para crear códigos de acceso de \\(3\\) cifras, una empresa usa únicamente los dígitos del conjunto \\(\\{2,4,6,8\\}\\). Los dígitos se pueden repetir.",
+        "Procedimiento: Paso 1. Determinar cuántos dígitos hay disponibles. Paso 2. Elevar esa cantidad al número de cifras que tiene cada código."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuántos códigos diferentes se pueden formar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(12\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(24\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(64\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(81\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Hay \\(4\\) opciones para cada una de las \\(3\\) cifras, entonces \\(4^3=64\\)."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una caja hay \\(30\\) galletas. Cada galleta tiene uno de cuatro sabores posibles: vainilla, chocolate, fresa o coco. Se sabe que \\(9\\) galletas son de chocolate y \\(6\\) son de coco."
+      ],
+      "materiales": [],
+      "pregunta": "Si una persona toma al azar una galleta de la caja, ¿cuál de las siguientes probabilidades se puede calcular con la información dada?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La probabilidad de tomar una galleta de vainilla."
+        },
+        {
+          "id": "B",
+          "texto": "La probabilidad de tomar una galleta de fresa o vainilla."
+        },
+        {
+          "id": "C",
+          "texto": "La probabilidad de no tomar una galleta de chocolate."
+        },
+        {
+          "id": "D",
+          "texto": "La probabilidad de tomar una galleta de fresa o coco."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Se sabe que hay \\(9\\) de chocolate de un total de \\(30\\), por lo que se puede calcular la probabilidad de no tomar chocolate: \\(21/30\\)."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un parque rectangular mide \\(12x\\) metros de largo y \\(8x\\) metros de ancho. En su interior se construirán dos senderos, uno vertical de ancho \\(x\\) y otro horizontal de ancho \\(x\\), como se muestra en la figura.",
+        "Un estudiante propone calcular el área de los senderos así: \\[(12x)(8x)-[(5x)(3x)+(6x)(4x)]\\]"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q8_parque_senderos",
+          "descripcion": "Parque rectangular con dos senderos de ancho \\(x\\).",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.45,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 105
+                },
+                "y": {
+                  "display": false,
+                  "min": -8,
+                  "max": 65
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "rectangle",
+                      "x": 10,
+                      "y": 10,
+                      "width": 72,
+                      "height": 48,
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "transparent"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 40,
+                      "y1": 10,
+                      "x2": 40,
+                      "y2": 58,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 46,
+                      "y1": 10,
+                      "x2": 46,
+                      "y2": 58,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 28,
+                      "x2": 82,
+                      "y2": 28,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 34,
+                      "x2": 82,
+                      "y2": 34,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 25,
+                      "y": 19,
+                      "text": "Zona 1",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 64,
+                      "y": 19,
+                      "text": "Zona 2",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 25,
+                      "y": 48,
+                      "text": "Zona 3",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 64,
+                      "y": 48,
+                      "text": "Zona 4",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 4,
+                      "x2": 82,
+                      "y2": 4,
+                      "stroke": "#000000",
+                      "arrowStart": true,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "text",
+                      "x": 46,
+                      "y": 0,
+                      "text": "12x",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 88,
+                      "y1": 10,
+                      "x2": 88,
+                      "y2": 58,
+                      "stroke": "#000000",
+                      "arrowStart": true,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "text",
+                      "x": 94,
+                      "y": 34,
+                      "text": "8x",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 40,
+                      "y1": 0,
+                      "x2": 46,
+                      "y2": 0,
+                      "stroke": "#000000",
+                      "arrowStart": true,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "text",
+                      "x": 43,
+                      "y": -4,
+                      "text": "x",
+                      "font": "13px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 94,
+                      "y1": 28,
+                      "x2": 94,
+                      "y2": 34,
+                      "stroke": "#000000",
+                      "arrowStart": true,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "text",
+                      "x": 98,
+                      "y": 31,
+                      "text": "x",
+                      "font": "13px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Por qué es incorrecto el procedimiento?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Porque resta solamente el área de dos zonas y no la de las cuatro zonas."
+        },
+        {
+          "id": "B",
+          "texto": "Porque debe sumar el área total del parque con el área de los senderos."
+        },
+        {
+          "id": "C",
+          "texto": "Porque el área total del parque es \\(20x\\) y no \\(96x^2\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Porque no es posible calcular áreas usando expresiones con letras."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Para hallar el área de los senderos restando zonas, debe restar el área de las cuatro zonas verdes, no solo dos de ellas."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "El precio de un producto fue de \\(\\$80.000\\) en abril y de \\(\\$84.000\\) en mayo. Un estudiante desea calcular el porcentaje de aumento del precio de abril a mayo."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál procedimiento permite calcular correctamente ese porcentaje?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Calcular \\(84.000-80.000\\) y luego sumar \\(100\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Calcular \\(\\dfrac{84.000-80.000}{80.000}\\) y luego multiplicar por \\(100\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Calcular \\(\\dfrac{80.000}{84.000}\\) y luego multiplicar por \\(100\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Calcular \\(84.000+80.000\\) y luego dividir entre \\(100\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El porcentaje de aumento se calcula como \\(\\frac{\\text{aumento}}{\\text{valor inicial}}\\times100\\)."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una institución educativa se distribuirán \\(200\\) libros entre tres grados. La gráfica muestra el porcentaje de estudiantes por grado.",
+        "El coordinador decide entregar \\(80\\) libros a grado \\(9\\), \\(80\\) libros a grado \\(10\\) y \\(40\\) libros a grado \\(11\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q10_porcentaje_estudiantes",
+          "descripcion": "Porcentaje de estudiantes por grado",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "pie",
+            "data": {
+              "labels": [
+                "Grado 9",
+                "Grado 10",
+                "Grado 11"
+              ],
+              "datasets": [
+                {
+                  "label": "Porcentaje",
+                  "data": [
+                    50,
+                    30,
+                    20
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.3,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "bottom"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿La distribución cumple con la proporción de estudiantes mostrada en la gráfica?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque todos los grados reciben al menos \\(40\\) libros."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque la suma de los libros entregados es \\(200\\)."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque los libros deben distribuirse según los porcentajes de estudiantes."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque todos los grados deberían recibir la misma cantidad de libros."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Según la gráfica, de \\(200\\) libros deberían entregarse \\(100\\), \\(60\\) y \\(40\\), no \\(80\\), \\(80\\) y \\(40\\)."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Los resultados muestran el porcentaje de personas que visitaron una biblioteca según su edad: \\(18\\%\\), personas entre \\(12\\) y \\(17\\) años; \\(22\\%\\), entre \\(18\\) y \\(25\\); \\(25\\%\\), entre \\(26\\) y \\(35\\); \\(20\\%\\), entre \\(36\\) y \\(50\\); \\(15\\%\\), mayores de \\(50\\)."
+      ],
+      "materiales": [],
+      "pregunta": "Si al \\(100\\%\\) se le resta el \\(18\\%\\) y el \\(15\\%\\), ¿a qué grupo corresponde el porcentaje obtenido?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "A las personas entre \\(12\\) y \\(50\\) años."
+        },
+        {
+          "id": "B",
+          "texto": "A las personas entre \\(18\\) y \\(50\\) años."
+        },
+        {
+          "id": "C",
+          "texto": "A las personas mayores de \\(25\\) años."
+        },
+        {
+          "id": "D",
+          "texto": "A las personas menores de \\(36\\) años."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Al restar los grupos de \\(12\\) a \\(17\\) y mayores de \\(50\\), quedan los grupos entre \\(18\\) y \\(50\\) años."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de transporte cobra una tarifa por paquete según la cantidad de paquetes enviados por un cliente."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Costo por paquete según cantidad enviada",
+          "columnas": [
+            "Categoría",
+            "Cantidad de paquetes",
+            "Costo por paquete"
+          ],
+          "filas": [
+            [
+              "\\(1\\)",
+              "\\(1\\) a \\(5\\)",
+              "\\(\\$12.000\\)"
+            ],
+            [
+              "\\(2\\)",
+              "\\(6\\) a \\(10\\)",
+              "\\(\\$10.500\\)"
+            ],
+            [
+              "\\(3\\)",
+              "\\(11\\) a \\(20\\)",
+              "\\(\\$9.000\\)"
+            ],
+            [
+              "\\(4\\)",
+              "\\(21\\) o más",
+              "\\(\\$8.000\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Respecto a la relación entre la cantidad de paquetes y el costo por paquete, es correcto afirmar que",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "a mayor cantidad de paquetes, menor costo por paquete."
+        },
+        {
+          "id": "B",
+          "texto": "el costo por paquete aumenta al cambiar de categoría."
+        },
+        {
+          "id": "C",
+          "texto": "el costo por paquete se mantiene constante en todas las categorías."
+        },
+        {
+          "id": "D",
+          "texto": "a menor cantidad de paquetes, menor costo por paquete."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "La tabla muestra que al aumentar la cantidad de paquetes, el costo por paquete disminuye."
+      }
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un estudiante registró la cantidad de páginas que leyó cada día durante \\(20\\) días."
+      ],
+      "materiales": [],
+      "pregunta": "Si desea conocer la moda de los datos registrados, ¿cuál información debe identificar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad de páginas que más se repitió durante los \\(20\\) días."
+        },
+        {
+          "id": "B",
+          "texto": "El día en que leyó la mayor cantidad de páginas."
+        },
+        {
+          "id": "C",
+          "texto": "La diferencia entre el mayor y el menor número de páginas leídas."
+        },
+        {
+          "id": "D",
+          "texto": "El promedio de páginas leídas durante los \\(20\\) días."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "La moda es el valor que aparece con mayor frecuencia."
+      }
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Usando únicamente razones trigonométricas en triángulos rectángulos."
+      ],
+      "materiales": [],
+      "pregunta": "¿En cuál de las siguientes situaciones se puede determinar la medida de todos los lados y ángulos del triángulo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Un triángulo rectángulo del que se conoce solo la medida de la hipotenusa."
+        },
+        {
+          "id": "B",
+          "texto": "Un triángulo rectángulo del que se conocen las medidas de sus dos catetos."
+        },
+        {
+          "id": "C",
+          "texto": "Un triángulo cualquiera del que se conoce solo un ángulo."
+        },
+        {
+          "id": "D",
+          "texto": "Un triángulo cualquiera del que se sabe que dos lados son iguales."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "En un triángulo rectángulo, conocer los dos catetos permite hallar la hipotenusa con Pitágoras y los ángulos con razones trigonométricas."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una feria se sorteará una bicicleta entre \\(80\\) asistentes. Mariana asistió con su mamá, su papá y sus dos hermanos. Si cada asistente tiene la misma posibilidad de ganar."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es la probabilidad de que Mariana o alguno de sus acompañantes gane la bicicleta?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\dfrac{1}{80}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\dfrac{4}{80}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\dfrac{5}{80}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\dfrac{10}{80}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Mariana más sus cuatro acompañantes son \\(5\\) personas de \\(80\\)."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una tienda, el ingreso diario por la venta de camisetas se calcula multiplicando el precio de cada camiseta por la cantidad de camisetas vendidas. Una persona afirma que, si se vende la misma cantidad de camisetas y se aumenta el precio de cada camiseta, el ingreso diario disminuirá."
+      ],
+      "materiales": [],
+      "pregunta": "¿Es verdadera la afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque al aumentar el precio siempre se venden menos camisetas."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque si la cantidad vendida se mantiene constante, el ingreso aumenta al aumentar el precio."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque el ingreso diario no depende del precio de venta."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque el ingreso permanece igual cuando cambia el precio."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Si la cantidad vendida se mantiene constante, aumentar el precio aumenta el producto precio por cantidad."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "A \\(8\\) estudiantes se les preguntó la edad y el número de horas semanales que dedican a estudiar matemáticas. Los datos se muestran en la tabla."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Edad y horas de estudio",
+          "columnas": [
+            "Estudiante",
+            "Edad",
+            "Horas de estudio semanal"
+          ],
+          "filas": [
+            [
+              "\\(1\\)",
+              "\\(15\\)",
+              "\\(4\\)"
+            ],
+            [
+              "\\(2\\)",
+              "\\(16\\)",
+              "\\(5\\)"
+            ],
+            [
+              "\\(3\\)",
+              "\\(16\\)",
+              "\\(3\\)"
+            ],
+            [
+              "\\(4\\)",
+              "\\(17\\)",
+              "\\(6\\)"
+            ],
+            [
+              "\\(5\\)",
+              "\\(15\\)",
+              "\\(4\\)"
+            ],
+            [
+              "\\(6\\)",
+              "\\(18\\)",
+              "\\(7\\)"
+            ],
+            [
+              "\\(7\\)",
+              "\\(17\\)",
+              "\\(5\\)"
+            ],
+            [
+              "\\(8\\)",
+              "\\(16\\)",
+              "\\(6\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "De acuerdo con la información anterior, ¿cuál de los siguientes datos es posible calcular?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El promedio de horas de estudio semanal de los estudiantes encuestados."
+        },
+        {
+          "id": "B",
+          "texto": "La nota final de matemáticas de cada estudiante."
+        },
+        {
+          "id": "C",
+          "texto": "La cantidad total de estudiantes del colegio."
+        },
+        {
+          "id": "D",
+          "texto": "El número de horas que estudian todos los estudiantes de grado \\(11\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "La tabla contiene las horas de estudio de los \\(8\\) estudiantes encuestados, por lo que se puede calcular su promedio."
+      }
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un vivero se registra la cantidad de plantas de dos tipos, ornamentales y frutales, durante tres meses. La gráfica muestra la información."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q18_plantas_vivero",
+          "descripcion": "Gráfica de barras apiladas de plantas ornamentales y frutales por mes.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "Mes 1",
+                "Mes 2",
+                "Mes 3"
+              ],
+              "datasets": [
+                {
+                  "label": "Ornamentales",
+                  "data": [
+                    60,
+                    80,
+                    100
+                  ],
+                  "borderWidth": 1
+                },
+                {
+                  "label": "Frutales",
+                  "data": [
+                    60,
+                    100,
+                    140
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.5,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "bottom"
+                }
+              },
+              "scales": {
+                "x": {
+                  "stacked": true,
+                  "title": {
+                    "display": true,
+                    "text": "Mes"
+                  }
+                },
+                "y": {
+                  "stacked": true,
+                  "beginAtZero": true,
+                  "max": 260,
+                  "ticks": {
+                    "stepSize": 50
+                  },
+                  "title": {
+                    "display": true,
+                    "text": "Número de plantas"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "De acuerdo con la gráfica, ¿cuál afirmación es verdadera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el mes \\(1\\) hubo más plantas frutales que ornamentales."
+        },
+        {
+          "id": "B",
+          "texto": "En el mes \\(2\\) hubo \\(180\\) plantas ornamentales."
+        },
+        {
+          "id": "C",
+          "texto": "En el mes \\(3\\) hubo \\(240\\) plantas en total."
+        },
+        {
+          "id": "D",
+          "texto": "En los tres meses hubo siempre menos plantas frutales que ornamentales."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "En el mes \\(3\\) hay \\(100\\) ornamentales y \\(140\\) frutales; en total \\(240\\)."
+      }
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa desea llenar con agua la tercera parte de un tanque rectangular del cual conoce todas sus medidas."
+      ],
+      "materiales": [],
+      "pregunta": "Para saber cuánta agua debe usar, ¿qué debe calcular primero?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La tercera parte de cada una de las medidas del tanque."
+        },
+        {
+          "id": "B",
+          "texto": "El perímetro de la base del tanque."
+        },
+        {
+          "id": "C",
+          "texto": "La capacidad total del tanque."
+        },
+        {
+          "id": "D",
+          "texto": "El área de una de las caras laterales del tanque."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Para calcular la tercera parte del agua necesaria, primero debe conocerse la capacidad total del tanque."
+      }
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La temperatura registrada en una ciudad el lunes a las \\(7{:}00\\ \\text{a. m.}\\) fue de \\(18{,}6\\ ^\\circ\\mathrm{C}\\). El martes a la misma hora la temperatura disminuyó \\(1{,}4\\ ^\\circ\\mathrm{C}\\) respecto al lunes."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál fue la temperatura registrada el martes?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(17{,}2\\ ^\\circ\\mathrm{C}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(18{,}0\\ ^\\circ\\mathrm{C}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(20{,}0\\ ^\\circ\\mathrm{C}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(20{,}6\\ ^\\circ\\mathrm{C}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "\\(18{,}6-1{,}4=17{,}2\\)."
+      }
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un comerciante registra la cantidad de naranjas que contienen \\(6\\) bolsas vendidas durante la mañana. Quiere calcular el rango estadístico de estos datos, restando el menor valor al mayor valor."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Número de naranjas por bolsa",
+          "columnas": [
+            "Bolsa",
+            "Número de naranjas"
+          ],
+          "filas": [
+            [
+              "\\(1\\)",
+              "\\(12\\)"
+            ],
+            [
+              "\\(2\\)",
+              "\\(15\\)"
+            ],
+            [
+              "\\(3\\)",
+              "\\(18\\)"
+            ],
+            [
+              "\\(4\\)",
+              "\\(14\\)"
+            ],
+            [
+              "\\(5\\)",
+              "\\(20\\)"
+            ],
+            [
+              "\\(6\\)",
+              "\\(16\\)"
+            ]
+          ]
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q21_opcion_A_recta_rango",
+          "descripcion": "Recta numérica con marcas en \\(12\\) y \\(20\\).",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 2.4,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 60
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 20,
+                      "x2": 92,
+                      "y2": 20,
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "tick",
+                      "x": 10,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 10,
+                      "y": 12,
+                      "text": "10",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 16,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 22,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 22,
+                      "y": 12,
+                      "text": "12",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 28,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 34,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 34,
+                      "y": 12,
+                      "text": "14",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 40,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 46,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 46,
+                      "y": 12,
+                      "text": "16",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 52,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 58,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 58,
+                      "y": 12,
+                      "text": "18",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 64,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 70,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 70,
+                      "y": 12,
+                      "text": "20",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 76,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 82,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 12,
+                      "text": "22",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 22,
+                      "y1": 42,
+                      "x2": 70,
+                      "y2": 42,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 22,
+                      "y1": 35,
+                      "x2": 22,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 70,
+                      "y1": 35,
+                      "x2": 70,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q21_opcion_B_recta_rango",
+          "descripcion": "Recta numérica con marcas en \\(14\\) y \\(20\\).",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 2.4,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 60
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 20,
+                      "x2": 92,
+                      "y2": 20,
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "tick",
+                      "x": 10,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 10,
+                      "y": 12,
+                      "text": "10",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 16,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 22,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 22,
+                      "y": 12,
+                      "text": "12",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 28,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 34,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 34,
+                      "y": 12,
+                      "text": "14",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 40,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 46,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 46,
+                      "y": 12,
+                      "text": "16",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 52,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 58,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 58,
+                      "y": 12,
+                      "text": "18",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 64,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 70,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 70,
+                      "y": 12,
+                      "text": "20",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 76,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 82,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 12,
+                      "text": "22",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 34,
+                      "y1": 42,
+                      "x2": 70,
+                      "y2": 42,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 34,
+                      "y1": 35,
+                      "x2": 34,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 70,
+                      "y1": 35,
+                      "x2": 70,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q21_opcion_C_recta_rango",
+          "descripcion": "Recta numérica con marcas en \\(15\\) y \\(18\\).",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 2.4,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 60
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 20,
+                      "x2": 92,
+                      "y2": 20,
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "tick",
+                      "x": 10,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 10,
+                      "y": 12,
+                      "text": "10",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 16,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 22,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 22,
+                      "y": 12,
+                      "text": "12",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 28,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 34,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 34,
+                      "y": 12,
+                      "text": "14",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 40,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 46,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 46,
+                      "y": 12,
+                      "text": "16",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 52,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 58,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 58,
+                      "y": 12,
+                      "text": "18",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 64,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 70,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 70,
+                      "y": 12,
+                      "text": "20",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 76,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 82,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 12,
+                      "text": "22",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 40,
+                      "y1": 42,
+                      "x2": 58,
+                      "y2": 42,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 40,
+                      "y1": 35,
+                      "x2": 40,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 58,
+                      "y1": 35,
+                      "x2": 58,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "tipo": "chartjs",
+          "id": "q21_opcion_D_recta_rango",
+          "descripcion": "Recta numérica con marcas en \\(12\\) y \\(18\\).",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 2.4,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 60
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 20,
+                      "x2": 92,
+                      "y2": 20,
+                      "stroke": "#000000",
+                      "lineWidth": 1.5,
+                      "arrowEnd": true
+                    },
+                    {
+                      "type": "tick",
+                      "x": 10,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 10,
+                      "y": 12,
+                      "text": "10",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 16,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 22,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 22,
+                      "y": 12,
+                      "text": "12",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 28,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 34,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 34,
+                      "y": 12,
+                      "text": "14",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 40,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 46,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 46,
+                      "y": 12,
+                      "text": "16",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 52,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 58,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 58,
+                      "y": 12,
+                      "text": "18",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 64,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 70,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 70,
+                      "y": 12,
+                      "text": "20",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 76,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "tick",
+                      "x": 82,
+                      "y1": 18,
+                      "y2": 22,
+                      "stroke": "#000000"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 12,
+                      "text": "22",
+                      "font": "11px Arial"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 22,
+                      "y1": 42,
+                      "x2": 58,
+                      "y2": 42,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 22,
+                      "y1": 35,
+                      "x2": 22,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 58,
+                      "y1": 35,
+                      "x2": 58,
+                      "y2": 49,
+                      "stroke": "#000000",
+                      "lineWidth": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál representación muestra correctamente los valores que se deben usar para calcular el rango?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Recta numérica que marca \\(12\\) y \\(20\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Recta numérica que marca \\(14\\) y \\(20\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Recta numérica que marca \\(15\\) y \\(18\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Recta numérica que marca \\(12\\) y \\(18\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "El menor valor es \\(12\\) y el mayor es \\(20\\). Esos son los valores que se usan para el rango."
+      }
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la figura se muestra un triángulo rectángulo."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q22_triangulo_rectangulo",
+          "descripcion": "Triángulo rectángulo con lados \\(a\\), \\(b\\), \\(c\\) y ángulos \\(P\\), \\(Q\\), \\(R\\).",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.5,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 75
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          15,
+                          15
+                        ],
+                        [
+                          85,
+                          15
+                        ],
+                        [
+                          15,
+                          62
+                        ]
+                      ],
+                      "stroke": "#000000",
+                      "lineWidth": 2,
+                      "fill": "transparent"
+                    },
+                    {
+                      "type": "rectangle",
+                      "x": 15,
+                      "y": 15,
+                      "width": 6,
+                      "height": 6,
+                      "stroke": "#000000",
+                      "lineWidth": 1.2,
+                      "fill": "transparent"
+                    },
+                    {
+                      "type": "text",
+                      "x": 10,
+                      "y": 39,
+                      "text": "a",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 8,
+                      "text": "b",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 51,
+                      "y": 43,
+                      "text": "c",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 58,
+                      "text": "P",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 21,
+                      "y": 24,
+                      "text": "Q",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 79,
+                      "y": 23,
+                      "text": "R",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "arc",
+                      "x": 15,
+                      "y": 62,
+                      "r": 8,
+                      "startAngle": -1.5707963267948966,
+                      "endAngle": -1.0471975511965976,
+                      "stroke": "#000000",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "arc",
+                      "x": 85,
+                      "y": 15,
+                      "r": 8,
+                      "startAngle": 3.141592653589793,
+                      "endAngle": 2.6179938779914944,
+                      "anticlockwise": true,
+                      "stroke": "#000000",
+                      "lineWidth": 1.5
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuáles medidas permiten hallar la longitud del lado \\(a\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Únicamente las medidas de los ángulos \\(P\\) y \\(R\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Únicamente la medida del ángulo \\(Q\\) y la del lado \\(b\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Únicamente la medida del ángulo \\(R\\) y la del lado \\(c\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Únicamente las medidas de los ángulos \\(Q\\) y \\(R\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Con el ángulo \\(R\\) y la hipotenusa \\(c\\), se puede hallar el cateto opuesto \\(a\\) usando \\(\\sin(R)=a/c\\)."
+      }
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se quieren repartir \\(\\$36.000\\) entre tres personas. A Daniel le corresponde el \\(40\\%\\) del dinero total y a Sara y Paula les corresponde el resto en partes iguales. Una forma de conocer cuánto dinero le corresponde a Sara es calcular primero el \\(60\\%\\) del total y luego tomar la mitad de ese resultado."
+      ],
+      "materiales": [],
+      "pregunta": "De acuerdo con lo anterior, ¿se tiene suficiente información para efectuar el plan?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque se conoce el dinero total y cómo se reparte el porcentaje restante."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque el dinero total es divisible exactamente entre tres."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque falta conocer cuánto dinero recibe Daniel."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque los porcentajes dados suman más del \\(100\\%\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Se conoce el total, el porcentaje de Daniel y que el \\(60\\%\\) restante se reparte en partes iguales entre Sara y Paula."
+      }
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para diseñar una mesa rectangular, un carpintero establece estas condiciones: \\(1\\). El largo más el ancho deben medir al menos \\(5\\) metros. \\(2\\). El largo debe medir al menos \\(3\\) metros. \\(3\\). El ancho debe medir al menos \\(2\\) metros. \\(4\\). El área de la mesa debe ser menor que \\(20\\) metros cuadrados.",
+        "Una de las condiciones se cumple si se satisfacen otras dos."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál condición no es necesario verificar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La \\(1\\), porque se obtiene al cumplir las condiciones \\(2\\) y \\(3\\)."
+        },
+        {
+          "id": "B",
+          "texto": "La \\(2\\), porque se obtiene al cumplir las condiciones \\(1\\) y \\(3\\)."
+        },
+        {
+          "id": "C",
+          "texto": "La \\(3\\), porque se obtiene al cumplir las condiciones \\(1\\) y \\(2\\)."
+        },
+        {
+          "id": "D",
+          "texto": "La \\(4\\), porque se obtiene al cumplir la condición \\(1\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Si el largo es al menos \\(3\\) y el ancho al menos \\(2\\), entonces su suma es al menos \\(5\\)."
+      }
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fundación debe organizar grupos de atención para diferentes comunidades. La tabla muestra la información disponible."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Comunidades y capacidad de grupos",
+          "columnas": [
+            "Comunidad",
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "filas": [
+            [
+              "Número de personas",
+              "\\(45\\)",
+              "\\(28\\)",
+              "\\(32\\)",
+              "\\(15\\)"
+            ],
+            [
+              "Número de mujeres",
+              "\\(25\\)",
+              "\\(13\\)",
+              "\\(18\\)",
+              "\\(9\\)"
+            ],
+            [
+              "Número de hombres",
+              "\\(20\\)",
+              "\\(15\\)",
+              "\\(14\\)",
+              "\\(6\\)"
+            ],
+            [
+              "Máximo de personas por grupo",
+              "\\(15\\)",
+              "\\(14\\)",
+              "\\(16\\)",
+              "\\(5\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Para saber cuántos grupos de atención debe organizar la fundación, ¿qué información es necesario usar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El número de mujeres y el número de hombres de cada comunidad."
+        },
+        {
+          "id": "B",
+          "texto": "El número de personas de cada comunidad y el máximo de personas por grupo."
+        },
+        {
+          "id": "C",
+          "texto": "El número de comunidades y el número de mujeres."
+        },
+        {
+          "id": "D",
+          "texto": "El máximo de personas por grupo y el número de hombres."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Para saber cuántos grupos se requieren, se divide el número de personas de cada comunidad entre el máximo de personas por grupo."
+      }
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de transporte encuestó a \\(9\\) usuarios sobre cada cuántos días usan una ruta intermunicipal. Las respuestas fueron: \\[2,2,3,3,3,4,5,6,8\\]",
+        "Procedimiento: Paso 1. Calcula el promedio. Paso 2. Calcula la mediana. Paso 3. Compara los dos resultados. Paso 4. Elige el menor resultado."
+      ],
+      "materiales": [],
+      "pregunta": "Siguiendo el procedimiento, ¿cada cuántos días debe reforzar la ruta?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Cada \\(2\\) días."
+        },
+        {
+          "id": "B",
+          "texto": "Cada \\(3\\) días."
+        },
+        {
+          "id": "C",
+          "texto": "Cada \\(4\\) días."
+        },
+        {
+          "id": "D",
+          "texto": "Cada \\(5\\) días."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El promedio es \\(36/9=4\\) y la mediana es \\(3\\). El menor resultado es \\(3\\)."
+      }
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para cubrir el piso de un salón de \\(4\\ \\text{m}\\) de ancho y \\(600\\ \\text{cm}\\) de largo, se usarán baldosas de \\(40\\ \\text{cm}\\times 50\\ \\text{cm}\\). Un trabajador propone: Paso 1. Calcula el área del salón multiplicando \\(4\\times600=2.400\\). Paso 2. Calcula el área de una baldosa multiplicando \\(40\\times50=2.000\\). Paso 3. Divide el área del salón entre el área de una baldosa: \\(\\frac{2.400}{2.000}=1{,}2\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿En cuál paso cometió el error?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el paso \\(1\\), porque multiplicó medidas expresadas en diferentes unidades."
+        },
+        {
+          "id": "B",
+          "texto": "En el paso \\(2\\), porque no se puede calcular el área de una baldosa rectangular."
+        },
+        {
+          "id": "C",
+          "texto": "En el paso \\(3\\), porque debía sumar las áreas y no dividirlas."
+        },
+        {
+          "id": "D",
+          "texto": "En el paso \\(2\\), porque las baldosas deben medirse en metros cuadrados."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "En el paso 1 mezcla metros y centímetros sin convertir previamente a una misma unidad."
+      }
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una veterinaria determina la cantidad de alimento diario, en gramos, que debe recibir un gato según su peso \\(p\\), en kilogramos, mediante la función: \\[f(p)=\\begin{cases}40, & \\text{si } p\\leq3,\\\\ 15p, & \\text{si } 3<p<6,\\\\ 90, & \\text{si } p\\geq6.\\end{cases}\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Si en una jornada todos los gatos atendidos pesan \\(3\\) kilogramos o menos, ¿qué información se requiere para calcular la cantidad total de alimento diario que deben recibir?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad de gatos que pesan exactamente \\(3\\) kilogramos."
+        },
+        {
+          "id": "B",
+          "texto": "La cantidad total de gatos atendidos en la jornada."
+        },
+        {
+          "id": "C",
+          "texto": "El peso exacto de cada gato atendido."
+        },
+        {
+          "id": "D",
+          "texto": "La cantidad de gatos que pesan más de \\(6\\) kilogramos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Si todos pesan \\(3\\) kg o menos, cada gato recibe \\(40\\) gramos. Solo se necesita el número total de gatos para multiplicar por \\(40\\)."
+      }
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se realizó un experimento para comparar el crecimiento de plantas tratadas con tres fertilizantes \\((A,B,C)\\). La tabla muestra la altura promedio de las plantas en diferentes días.",
+        "Una persona hace tres afirmaciones: Afirmación 1. En el día \\(10\\), la mayor altura corresponde al fertilizante \\(B\\). Afirmación 2. En el día \\(30\\), la menor altura corresponde al fertilizante \\(B\\). Afirmación 3. En el día \\(40\\), la mayor altura corresponde al fertilizante \\(C\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Altura promedio de plantas",
+          "columnas": [
+            "Tratamiento",
+            "Día 10",
+            "Día 20",
+            "Día 30",
+            "Día 40"
+          ],
+          "filas": [
+            [
+              "Fertilizante \\(A\\)",
+              "\\(12\\ \\text{cm}\\)",
+              "\\(25\\ \\text{cm}\\)",
+              "\\(41\\ \\text{cm}\\)",
+              "\\(55\\ \\text{cm}\\)"
+            ],
+            [
+              "Fertilizante \\(B\\)",
+              "\\(15\\ \\text{cm}\\)",
+              "\\(24\\ \\text{cm}\\)",
+              "\\(39\\ \\text{cm}\\)",
+              "\\(60\\ \\text{cm}\\)"
+            ],
+            [
+              "Fertilizante \\(C\\)",
+              "\\(14\\ \\text{cm}\\)",
+              "\\(28\\ \\text{cm}\\)",
+              "\\(44\\ \\text{cm}\\)",
+              "\\(58\\ \\text{cm}\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál o cuáles afirmaciones son falsas?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solo la \\(1\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Solo la \\(3\\)."
+        },
+        {
+          "id": "C",
+          "texto": "La \\(1\\) y la \\(2\\)."
+        },
+        {
+          "id": "D",
+          "texto": "La \\(2\\) y la \\(3\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La afirmación 1 es verdadera, pues en el día \\(10\\) el mayor valor es \\(15\\) para \\(B\\). La afirmación 2 es verdadera, pues en el día \\(30\\) el menor valor es \\(39\\) para \\(B\\). La afirmación 3 es falsa, pues en el día \\(40\\) el mayor valor es \\(60\\) para \\(B\\), no para \\(C\\)."
+      }
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la tabla se muestra el porcentaje de acierto de Valentina en \\(5\\) pruebas de lectura. Todas las pruebas tienen el mismo peso en el resultado final."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Porcentaje de acierto de Valentina",
+          "columnas": [
+            "Estudiante",
+            "Prueba 1",
+            "Prueba 2",
+            "Prueba 3",
+            "Prueba 4",
+            "Prueba 5"
+          ],
+          "filas": [
+            [
+              "Valentina",
+              "\\(70\\%\\)",
+              "\\(82\\%\\)",
+              "\\(76\\%\\)",
+              "\\(90\\%\\)",
+              "\\(87\\%\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Con la información de la tabla, ¿cuál de los siguientes valores es posible encontrar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad exacta de preguntas correctas en cada prueba."
+        },
+        {
+          "id": "B",
+          "texto": "El promedio del porcentaje de acierto en las cinco pruebas."
+        },
+        {
+          "id": "C",
+          "texto": "El número total de preguntas que tenía cada prueba."
+        },
+        {
+          "id": "D",
+          "texto": "La calificación definitiva si cada prueba tiene diferente peso."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Como se conocen los porcentajes y todas las pruebas tienen el mismo peso, se puede calcular el promedio de los porcentajes."
+      }
+    }
+  ],
+  "resumenRespuestas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    }
+  ],
+  "observacionesValidacion": [
+    {
+      "detalle": "Las claves fueron tomadas del bloque de respuestas del archivo fuente y revisadas matemáticamente."
+    }
+  ]
+}

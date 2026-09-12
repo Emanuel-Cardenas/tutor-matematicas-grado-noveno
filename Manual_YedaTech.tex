@@ -1,0 +1,609 @@
+\documentclass[12pt, a4paper]{article}
+
+% ──────────────────────────────────────────────
+% PAQUETES
+% ──────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, shadows, calc, fit}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{fontawesome5}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multicol}
+\usepackage{setspace}
+\usepackage{titlesec}
+
+% ──────────────────────────────────────────────
+% COLORES YEDATECH
+% ──────────────────────────────────────────────
+\definecolor{ytOrange}{HTML}{FF6900}
+\definecolor{ytDark}{HTML}{1A1A2E}
+\definecolor{ytGrey}{HTML}{2A2A2A}
+\definecolor{ytLightGrey}{HTML}{F5F5F5}
+\definecolor{ytGreen}{HTML}{10B981}
+\definecolor{ytRed}{HTML}{EF4444}
+\definecolor{ytBlue}{HTML}{6366F1}
+\definecolor{ytYellow}{HTML}{F59E0B}
+
+% ──────────────────────────────────────────────
+% ESTILOS
+% ──────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=ytOrange,
+    urlcolor=ytBlue,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{ytOrange}{\textbf{YedaTech}} \textcolor{ytGrey}{— Manual del Usuario}}
+\fancyhead[R]{\textcolor{ytGrey}{\thepage}}
+\fancyfoot[C]{\small\textcolor{gray}{Tutor Inteligente de Matemáticas con IA}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{ytOrange}\leaders\hrule height \headrulewidth\hfill}}
+
+\titleformat{\section}
+  {\Large\bfseries\color{ytDark}}{\textcolor{ytOrange}{\thesection}}{1em}{}
+  [\vspace{-0.5em}\textcolor{ytOrange}{\rule{\textwidth}{1pt}}]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{ytGrey}}{}{0em}{\textcolor{ytOrange}{\faIcon{chevron-right}}\ }
+
+% ──────────────────────────────────────────────
+% CAJAS PERSONALIZADAS
+% ──────────────────────────────────────────────
+\newtcolorbox{infobox}[1][]{
+    enhanced, breakable,
+    colback=ytOrange!5, colframe=ytOrange,
+    fonttitle=\bfseries\color{white},
+    title={#1},
+    coltitle=white,
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=ytOrange, rounded corners},
+    rounded corners,
+    drop shadow,
+}
+
+\newtcolorbox{tipbox}[1][]{
+    enhanced, breakable,
+    colback=ytGreen!5, colframe=ytGreen,
+    fonttitle=\bfseries\color{white},
+    title={#1},
+    coltitle=white,
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=ytGreen, rounded corners},
+    rounded corners,
+}
+
+\newtcolorbox{warningbox}[1][]{
+    enhanced, breakable,
+    colback=ytYellow!5, colframe=ytYellow,
+    fonttitle=\bfseries\color{white},
+    title={#1},
+    coltitle=white,
+    attach boxed title to top left={yshift=-2mm, xshift=5mm},
+    boxed title style={colback=ytYellow, rounded corners},
+    rounded corners,
+}
+
+% ──────────────────────────────────────────────
+% DOCUMENTO
+% ──────────────────────────────────────────────
+\begin{document}
+
+% ══════════════════════════════════════════════
+% PORTADA
+% ══════════════════════════════════════════════
+\begin{titlepage}
+\begin{center}
+
+\vspace*{2cm}
+
+% Logo simulado
+\begin{tikzpicture}
+    \node[fill=ytOrange, rounded corners=12pt, minimum width=2.5cm, minimum height=2.5cm, text=white, font=\Huge\bfseries] {YT};
+\end{tikzpicture}
+
+\vspace{1cm}
+
+{\Huge\bfseries\textcolor{ytDark}{YedaTech}}\\[0.3cm]
+{\LARGE\textcolor{ytOrange}{Tutor Inteligente de Matemáticas}}\\[0.2cm]
+{\large\textcolor{ytGrey}{Potenciado por Inteligencia Artificial}}
+
+\vspace{1.5cm}
+
+\textcolor{ytOrange}{\rule{0.6\textwidth}{2pt}}
+
+\vspace{1.5cm}
+
+{\Large\textcolor{ytGrey}{\textbf{Manual del Usuario}}}\\[0.5cm]
+{\large\textcolor{gray}{Guía completa del sistema para estudiantes y docentes}}
+
+\vspace{2cm}
+
+\begin{tikzpicture}
+    \node[draw=ytOrange!30, rounded corners=8pt, fill=ytOrange!3, inner sep=15pt, text width=10cm, align=center] {
+        \textcolor{ytGrey}{
+            \faIcon{graduation-cap}\ \ Evaluación diagnóstica personalizada\\[3pt]
+            \faIcon{brain}\ \ Tutoría socrática adaptativa\\[3pt]
+            \faIcon{chart-line}\ \ Analítica de progreso en tiempo real\\[3pt]
+            \faIcon{book}\ \ Alineado al currículo del MEN de Colombia
+        }
+    };
+\end{tikzpicture}
+
+\vfill
+
+{\small\textcolor{gray}{Versión 1.0 — Marzo 2026}}
+
+\end{center}
+\end{titlepage}
+
+% ══════════════════════════════════════════════
+% TABLA DE CONTENIDOS
+% ══════════════════════════════════════════════
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════
+% 1. ¿QUÉ ES YEDATECH?
+% ══════════════════════════════════════════════
+\section{¿Qué es YedaTech?}
+
+YedaTech es una plataforma educativa inteligente diseñada para ayudar a estudiantes de bachillerato colombiano (grados 6° a 11°) a mejorar sus habilidades en matemáticas. A diferencia de una clase tradicional, YedaTech utiliza \textbf{Inteligencia Artificial} para adaptarse al nivel y ritmo de cada estudiante.
+
+\begin{infobox}[\faIcon{lightbulb}\ Filosofía del Sistema]
+YedaTech se basa en el \textbf{Método Socrático}: en lugar de dar respuestas directas, el tutor guía al estudiante con preguntas estratégicas para que descubra la solución por sí mismo. Esto promueve el pensamiento crítico y la comprensión profunda.
+\end{infobox}
+
+\subsection{Características principales}
+
+\begin{itemize}[leftmargin=*, itemsep=6pt]
+    \item[\textcolor{ytOrange}{\faIcon{clipboard-check}}] \textbf{Evaluación Diagnóstica Inteligente:} Un examen de 15 preguntas generado por IA que identifica fortalezas y debilidades del estudiante.
+    \item[\textcolor{ytOrange}{\faIcon{brain}}] \textbf{Tutor Socrático con IA:} Un chat interactivo donde el tutor guía al estudiante paso a paso sin revelar la respuesta.
+    \item[\textcolor{ytOrange}{\faIcon{sliders-h}}] \textbf{Dificultad Adaptativa:} El sistema ajusta automáticamente la complejidad de los ejercicios según el desempeño del estudiante.
+    \item[\textcolor{ytOrange}{\faIcon{chart-bar}}] \textbf{Analítica Detallada:} Gráficas y reportes que muestran el progreso por tema, tipo de error, y rendimiento temporal.
+    \item[\textcolor{ytOrange}{\faIcon{flag}}] \textbf{Currículo Oficial MEN:} Todos los contenidos están alineados con los Estándares Básicos de Competencias y los DBA del Ministerio de Educación Nacional de Colombia.
+\end{itemize}
+
+\subsection{¿A quién está dirigido?}
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth}{>{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+\toprule
+\textbf{\textcolor{ytOrange}{\faIcon{user-graduate}} Estudiantes} & \textbf{\textcolor{ytBlue}{\faIcon{chalkboard-teacher}} Docentes} & \textbf{\textcolor{ytGreen}{\faIcon{users}} Padres} \\
+\midrule
+Grados 6° a 11° de bachillerato colombiano & Para monitorear el progreso de sus estudiantes & Para acompañar el aprendizaje de sus hijos \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ══════════════════════════════════════════════
+% 2. PRIMEROS PASOS
+% ══════════════════════════════════════════════
+\section{Primeros Pasos}
+
+\subsection{Crear una cuenta}
+
+Para comenzar a usar YedaTech, el estudiante debe registrarse:
+
+\begin{enumerate}[leftmargin=*, itemsep=4pt]
+    \item Acceder a la plataforma desde el navegador web.
+    \item Hacer clic en \textbf{``Regístrate aquí''} en la pantalla de inicio.
+    \item Completar el formulario con:
+    \begin{itemize}
+        \item \textbf{Nombre completo} del estudiante
+        \item \textbf{Nombre de usuario} (para iniciar sesión)
+        \item \textbf{Correo electrónico}
+        \item \textbf{Contraseña} (mínimo 6 caracteres)
+    \end{itemize}
+    \item Hacer clic en \textbf{``Crear Cuenta''}.
+    \item El sistema redirigirá automáticamente a la pantalla de inicio de sesión.
+\end{enumerate}
+
+\subsection{Iniciar sesión}
+
+Una vez registrado, el estudiante inicia sesión con su nombre de usuario y contraseña. Al ingresar, verá el \textbf{Dashboard} (tablero principal) con tres opciones principales:
+
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={draw=ytOrange!40, rounded corners=8pt, fill=ytOrange!3, 
+                minimum width=4cm, minimum height=2.2cm, align=center,
+                font=\small, text width=3.5cm},
+    >=Stealth
+]
+    \node[box] (diag) at (0,0) {\textcolor{ytOrange}{\faIcon{clipboard-check}}\\[3pt]\textbf{Evaluación}\\\textbf{Diagnóstica}\\[2pt]\scriptsize Conoce tu nivel};
+    \node[box] (tutor) at (5,0) {\textcolor{ytOrange}{\faIcon{brain}}\\[3pt]\textbf{Tutor}\\\textbf{Socrático}\\[2pt]\scriptsize Practica con IA};
+    \node[box] (anal) at (10,0) {\textcolor{ytOrange}{\faIcon{chart-line}}\\[3pt]\textbf{Analítica}\\\textbf{Avanzada}\\[2pt]\scriptsize Ve tu progreso};
+\end{tikzpicture}
+\end{center}
+
+\begin{tipbox}[\faIcon{star}\ Recomendación]
+Se recomienda \textbf{comenzar siempre por la Evaluación Diagnóstica}. Esta prueba permite al sistema conocer tu nivel actual y personalizar toda tu experiencia de aprendizaje.
+\end{tipbox}
+
+% ══════════════════════════════════════════════
+% 3. EVALUACIÓN DIAGNÓSTICA
+% ══════════════════════════════════════════════
+\section{Evaluación Diagnóstica Inteligente}
+
+La evaluación diagnóstica es el corazón del sistema. Es un examen personalizado que identifica exactamente qué sabe y qué necesita reforzar cada estudiante.
+
+\subsection{¿Cómo funciona?}
+
+El proceso se divide en tres fases:
+
+\begin{center}
+\begin{tikzpicture}[
+    phase/.style={draw=ytOrange, rounded corners=10pt, fill=white, 
+                  minimum width=3.8cm, minimum height=2.8cm, align=center,
+                  font=\small, text width=3.5cm, drop shadow},
+    arrow/.style={-{Stealth[length=8pt]}, thick, ytOrange},
+]
+    \node[phase] (p1) at (0,0) {
+        \textcolor{ytOrange}{\Large\faIcon{cog}}\\[5pt]
+        \textbf{Fase 1}\\
+        \textbf{Generación}\\[3pt]
+        \scriptsize La IA crea 15 preguntas únicas adaptadas a tu grado
+    };
+    \node[phase] (p2) at (5.5,0) {
+        \textcolor{ytBlue}{\Large\faIcon{pen}}\\[5pt]
+        \textbf{Fase 2}\\
+        \textbf{Examen}\\[3pt]
+        \scriptsize Respondes las preguntas a tu ritmo con temporizador
+    };
+    \node[phase] (p3) at (11,0) {
+        \textcolor{ytGreen}{\Large\faIcon{chart-pie}}\\[5pt]
+        \textbf{Fase 3}\\
+        \textbf{Análisis}\\[3pt]
+        \scriptsize 3 agentes de IA analizan tus resultados
+    };
+    
+    \draw[arrow] (p1) -- (p2);
+    \draw[arrow] (p2) -- (p3);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Selección de grado}
+
+Antes de generar el examen, el estudiante selecciona su grado escolar actual (6° a 11°). Esto es fundamental porque \textbf{el examen se genera específicamente con los temas del currículo oficial} de ese grado.
+
+\subsection{El examen}
+
+El examen consta de \textbf{15 preguntas de opción múltiple} (A, B, C, D) distribuidas así:
+
+\begin{center}
+\begin{tabularx}{0.85\textwidth}{Xcc}
+\toprule
+\textbf{Pensamiento Matemático} & \textbf{Preguntas} & \textbf{Ícono} \\
+\midrule
+Pensamiento Numérico (Sistemas Numéricos) & 4 & \textcolor{ytOrange}{\faIcon{sort-numeric-up}} \\
+Pensamiento Variacional (Álgebra y Análisis) & 4 & \textcolor{ytBlue}{\faIcon{superscript}} \\
+Pensamiento Espacial y Métrico (Geometría) & 4 & \textcolor{ytGreen}{\faIcon{shapes}} \\
+Pensamiento Aleatorio (Datos y Probabilidad) & 3 & \textcolor{ytYellow}{\faIcon{dice}} \\
+\midrule
+\textbf{Total} & \textbf{15} & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{warningbox}[\faIcon{clock}\ Sobre el temporizador]
+El sistema registra cuánto tiempo tardas en cada pregunta. Esto \textbf{no es para presionarte}, sino para que la IA pueda detectar si necesitas más práctica en algún tema (por ejemplo, si tardas mucho puede indicar inseguridad en ese tema).
+\end{warningbox}
+
+Durante el examen, el estudiante puede:
+\begin{itemize}[itemsep=3pt]
+    \item Navegar libremente entre preguntas (adelante y atrás).
+    \item Ver un mapa visual de qué preguntas ya respondió.
+    \item Cambiar sus respuestas antes de enviar.
+    \item Enviar el examen solo cuando haya respondido \textbf{todas} las preguntas.
+\end{itemize}
+
+\subsection{Análisis de resultados}
+
+Una vez enviado el examen, \textbf{tres agentes de inteligencia artificial} trabajan en secuencia para analizar las respuestas:
+
+\begin{enumerate}[leftmargin=*, itemsep=8pt]
+    \item \textbf{\textcolor{ytOrange}{Agente Analizador de Respuestas:}} Revisa cada pregunta incorrecta e identifica:
+    \begin{itemize}
+        \item El \textit{tipo de error} cometido (conceptual, procedimental, aritmético o de interpretación)
+        \item El \textit{concepto débil} asociado
+        \item Una \textit{explicación} de por qué la respuesta es incorrecta y cuál es la correcta
+    \end{itemize}
+    
+    \item \textbf{\textcolor{ytBlue}{Agente de Diagnóstico Académico:}} Genera un diagnóstico global que incluye:
+    \begin{itemize}
+        \item Temas dominados vs.\ temas con dificultad
+        \item Rendimiento por cada pensamiento matemático (Numérico, Variacional, Espacial, Aleatorio)
+        \item Brecha académica respecto a lo esperado para el grado
+        \item Observaciones sobre el comportamiento temporal
+    \end{itemize}
+    
+    \item \textbf{\textcolor{ytGreen}{Agente de Recomendaciones:}} Crea un plan de estudio personalizado con:
+    \begin{itemize}
+        \item Temas organizados por prioridad (alta, media, baja)
+        \item Ejercicios específicos recomendados para cada tema
+        \item Duración estimada del plan
+        \item Consejos generales de estudio
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Repetir el diagnóstico}
+
+El estudiante puede \textbf{repetir la evaluación diagnóstica} en cualquier momento para medir su progreso. Al repetirla:
+\begin{itemize}
+    \item Se generan \textbf{preguntas nuevas} (nunca se repite el mismo examen).
+    \item Se mantienen los \textbf{mismos temas} del grado para que la comparación sea válida.
+    \item Se puede comparar el rendimiento anterior con el actual.
+\end{itemize}
+
+% ══════════════════════════════════════════════
+% 4. TUTOR SOCRÁTICO
+% ══════════════════════════════════════════════
+\section{Tutor Socrático con IA}
+
+El Tutor Socrático es la herramienta de práctica diaria. Funciona como un chat inteligente donde el estudiante resuelve ejercicios con la guía del tutor.
+
+\subsection{¿Qué es el Método Socrático?}
+
+El método socrático consiste en \textbf{enseñar a través de preguntas}, no de respuestas. En lugar de decirle al estudiante ``la respuesta es 42'', el tutor le hace preguntas como:
+
+\begin{infobox}[\faIcon{comments}\ Ejemplo de diálogo socrático]
+\textbf{Tutor:} \textit{Resuelve: $2x + 6 = 14$}\\[3pt]
+\textbf{Estudiante:} \textit{No sé por dónde empezar}\\[3pt]
+\textbf{Tutor:} \textit{¿Qué operación podrías hacer para dejar la $x$ sola en un lado? Piensa en qué está ``acompañando'' a la $x$ en este momento...}\\[3pt]
+\textbf{Estudiante:} \textit{¿Restar 6 de ambos lados?}\\[3pt]
+\textbf{Tutor:} \textit{¡Exacto! Y si restas 6 de ambos lados, ¿qué te queda?}
+\end{infobox}
+
+\subsection{Flujo de una sesión de tutoría}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    step/.style={draw=ytOrange!50, rounded corners=6pt, fill=ytOrange!5, 
+                 minimum width=10cm, minimum height=1cm, align=center, font=\small},
+    arrow/.style={-{Stealth[length=6pt]}, thick, ytOrange!60},
+]
+    \node[step] (s1) {\faIcon{play}\ El sistema presenta un \textbf{ejercicio} adaptado al nivel del estudiante};
+    \node[step, below=of s1] (s2) {\faIcon{pen}\ El estudiante escribe su \textbf{respuesta o razonamiento}};
+    \node[step, below=of s2] (s3) {\faIcon{robot}\ La IA \textbf{evalúa} si la respuesta es correcta o incorrecta};
+    \node[step, below=of s3] (s4) {\faIcon{comments}\ El tutor responde con \textbf{preguntas guía} (no da la respuesta directa)};
+    \node[step, below=of s4] (s5) {\faIcon{redo}\ Se repite hasta que el estudiante \textbf{descubra la respuesta} por sí mismo};
+    \node[step, below=of s5] (s6) {\faIcon{arrow-up}\ Se pasa al \textbf{siguiente ejercicio} y el nivel se ajusta automáticamente};
+    
+    \draw[arrow] (s1) -- (s2);
+    \draw[arrow] (s2) -- (s3);
+    \draw[arrow] (s3) -- (s4);
+    \draw[arrow] (s4) -- (s5);
+    \draw[arrow] (s5) -- (s6);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Sistema de niveles adaptativo}
+
+El sistema monitorea las últimas 5 respuestas evaluadas del estudiante y ajusta la dificultad automáticamente:
+
+\begin{center}
+\begin{tabularx}{0.85\textwidth}{cXc}
+\toprule
+\textbf{Precisión} & \textbf{Acción} & \textbf{Resultado} \\
+\midrule
+$\geq 80\%$ & Se \textcolor{ytGreen}{aumenta} la dificultad & \textcolor{ytGreen}{\faIcon{arrow-up}} Nivel +1 \\
+$50\% - 79\%$ & Se \textcolor{ytBlue}{mantiene} la dificultad & \textcolor{ytBlue}{\faIcon{equals}} Mismo nivel \\
+$< 50\%$ & Se \textcolor{ytRed}{reduce} la dificultad & \textcolor{ytRed}{\faIcon{arrow-down}} Nivel -1 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Esto garantiza que el estudiante siempre trabaje con ejercicios \textbf{desafiantes pero alcanzables}, evitando frustración o aburrimiento.
+
+% ══════════════════════════════════════════════
+% 5. ANALÍTICA Y PROGRESO
+% ══════════════════════════════════════════════
+\section{Analítica y Seguimiento de Progreso}
+
+YedaTech ofrece un sistema completo de analíticas para que tanto el estudiante como el docente puedan visualizar el progreso.
+
+\subsection{Dashboard del estudiante}
+
+Al iniciar sesión, el estudiante ve un panel con métricas clave:
+
+\begin{center}
+\begin{tikzpicture}[
+    metric/.style={draw=ytOrange!30, rounded corners=6pt, fill=white, 
+                   minimum width=3.2cm, minimum height=1.8cm, align=center, font=\small, drop shadow},
+]
+    \node[metric] (m1) at (0,0) {\textcolor{ytOrange}{\Large\textbf{3}}\\Nivel Actual};
+    \node[metric] (m2) at (4,0) {\textcolor{ytGreen}{\Large\textbf{28}}\\Respuestas\\Correctas};
+    \node[metric] (m3) at (8,0) {\textcolor{ytBlue}{\Large\textbf{5}}\\Sesiones\\Completadas};
+    \node[metric] (m4) at (12,0) {\textcolor{ytYellow}{\Large\textbf{73\%}}\\Precisión\\General};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Analítica avanzada}
+
+La sección de analítica avanzada permite ver:
+
+\begin{itemize}[leftmargin=*, itemsep=5pt]
+    \item[\textcolor{ytOrange}{\faIcon{chart-bar}}] \textbf{Rendimiento por tema:} Porcentaje de aciertos en cada pensamiento matemático (Numérico, Variacional, Espacial/Métrico, Aleatorio).
+    \item[\textcolor{ytBlue}{\faIcon{history}}] \textbf{Historial de diagnósticos:} Comparación de resultados entre evaluaciones diagnósticas para medir el avance real.
+    \item[\textcolor{ytGreen}{\faIcon{clock}}] \textbf{Patrón temporal:} Cuánto tiempo promedio tarda en cada pregunta y si la velocidad mejora con el tiempo.
+    \item[\textcolor{ytRed}{\faIcon{exclamation-triangle}}] \textbf{Tipos de error frecuentes:} Distribución de errores conceptuales, procedimentales, aritméticos y de interpretación.
+    \item[\textcolor{ytYellow}{\faIcon{fire}}] \textbf{Rachas:} Cantidad de respuestas correctas o incorrectas consecutivas.
+\end{itemize}
+
+% ══════════════════════════════════════════════
+% 6. PANEL DE ADMINISTRACIÓN
+% ══════════════════════════════════════════════
+\section{Panel de Administración (Docentes)}
+
+YedaTech incluye un panel de administración exclusivo para docentes y coordinadores académicos.
+
+\subsection{Acceso}
+
+El panel de administración se accede con una contraseña de administrador independiente. Esto permite ver los datos de todos los estudiantes registrados en la plataforma.
+
+\subsection{Funcionalidades del panel}
+
+\begin{itemize}[leftmargin=*, itemsep=5pt]
+    \item[\textcolor{ytOrange}{\faIcon{users}}] \textbf{Lista de Estudiantes:} Ver todos los estudiantes registrados con su nivel actual, grado, número de sesiones y última actividad.
+    \item[\textcolor{ytOrange}{\faIcon{user}}] \textbf{Perfil Individual:} Al hacer clic en un estudiante, el docente puede ver:
+    \begin{itemize}
+        \item Su diagnóstico completo con temas dominados y débiles
+        \item Historial de todas las sesiones de tutoría
+        \item Detalle de cada interacción con el tutor
+        \item Tipos de errores más frecuentes
+    \end{itemize}
+    \item[\textcolor{ytOrange}{\faIcon{chart-line}}] \textbf{Analítica Global:} Estadísticas agregadas de toda la clase, incluyendo temas más difíciles y patrones de error comunes.
+\end{itemize}
+
+% ══════════════════════════════════════════════
+% 7. ARQUITECTURA DEL SISTEMA (Sin código)
+% ══════════════════════════════════════════════
+\section{¿Cómo funciona por dentro?}
+
+Sin entrar en detalles técnicos de programación, YedaTech está compuesto por un equipo de \textbf{agentes inteligentes} que trabajan juntos, cada uno con una función específica:
+
+\begin{center}
+\begin{tikzpicture}[
+    agent/.style={draw=#1!60, rounded corners=8pt, fill=#1!8, 
+                  minimum width=4.5cm, minimum height=1.5cm, align=center,
+                  font=\small, text width=4.2cm, drop shadow={shadow xshift=1pt, shadow yshift=-1pt}},
+    label/.style={font=\scriptsize\bfseries, text=#1},
+    conn/.style={-{Stealth[length=5pt]}, thick, #1!50},
+]
+    % Agentes del diagnóstico
+    \node[agent=ytOrange] (gen) at (0,6) {\textcolor{ytOrange}{\faIcon{cog}}\\[2pt]\textbf{Generador de Exámenes}\\[1pt]\scriptsize Crea preguntas únicas por grado};
+    \node[agent=ytRed] (ana) at (6,6) {\textcolor{ytRed}{\faIcon{search}}\\[2pt]\textbf{Analizador de Respuestas}\\[1pt]\scriptsize Identifica errores y patrones};
+    \node[agent=ytBlue] (diag) at (12,6) {\textcolor{ytBlue}{\faIcon{stethoscope}}\\[2pt]\textbf{Diagnosticador Académico}\\[1pt]\scriptsize Evalúa el nivel real};
+    
+    % Agentes del tutor
+    \node[agent=ytGreen] (router) at (0,3) {\textcolor{ytGreen}{\faIcon{route}}\\[2pt]\textbf{Clasificador de Intención}\\[1pt]\scriptsize Entiende qué dice el estudiante};
+    \node[agent=ytOrange] (tutor) at (6,3) {\textcolor{ytOrange}{\faIcon{brain}}\\[2pt]\textbf{Tutor Socrático}\\[1pt]\scriptsize Guía con preguntas};
+    \node[agent=ytBlue] (eval) at (12,3) {\textcolor{ytBlue}{\faIcon{check-circle}}\\[2pt]\textbf{Evaluador}\\[1pt]\scriptsize Verifica si la respuesta es correcta};
+    
+    % Agentes de soporte
+    \node[agent=ytYellow] (adapt) at (0,0) {\textcolor{ytYellow}{\faIcon{sliders-h}}\\[2pt]\textbf{Agente Adaptativo}\\[1pt]\scriptsize Ajusta la dificultad};
+    \node[agent=ytGreen] (mem) at (6,0) {\textcolor{ytGreen}{\faIcon{memory}}\\[2pt]\textbf{Agente de Memoria}\\[1pt]\scriptsize Recuerda tu perfil cognitivo};
+    \node[agent=ytRed] (tel) at (12,0) {\textcolor{ytRed}{\faIcon{database}}\\[2pt]\textbf{Telemetría}\\[1pt]\scriptsize Registra toda la actividad};
+    
+    % Conexiones
+    \draw[conn=ytOrange] (gen) -- (ana);
+    \draw[conn=ytRed] (ana) -- (diag);
+    \draw[conn=ytGreen] (router) -- (tutor);
+    \draw[conn=ytOrange] (tutor) -- (eval);
+    \draw[conn=ytBlue] (eval) -- (adapt);
+    \draw[conn=ytYellow] (adapt) -- (mem);
+    \draw[conn=ytGreen] (mem) -- (tel);
+    
+    % Labels de grupo
+    \node[label=ytOrange, anchor=west] at (-2.5,6) {\rotatebox{90}{DIAGNÓSTICO}};
+    \node[label=ytGreen, anchor=west] at (-2.5,3) {\rotatebox{90}{TUTORÍA}};
+    \node[label=ytBlue, anchor=west] at (-2.5,0) {\rotatebox{90}{SOPORTE}};
+\end{tikzpicture}
+\end{center}
+
+\begin{tipbox}[\faIcon{info-circle}\ Nota importante]
+Todos estos agentes trabajan \textbf{de forma invisible} para el estudiante. El usuario solo ve las preguntas, respuestas y resultados. La complejidad del sistema está completamente oculta detrás de una interfaz sencilla e intuitiva.
+\end{tipbox}
+
+% ══════════════════════════════════════════════
+% 8. CURRÍCULO
+% ══════════════════════════════════════════════
+\section{Alineación con el Currículo Nacional}
+
+Todos los contenidos de YedaTech están basados en documentos oficiales del \textbf{Ministerio de Educación Nacional de Colombia (MEN)}:
+
+\begin{itemize}[itemsep=5pt]
+    \item \textbf{Lineamientos Curriculares de Matemáticas} (1998)
+    \item \textbf{Estándares Básicos de Competencias en Matemáticas} (2006)
+    \item \textbf{Derechos Básicos de Aprendizaje (DBA)} Versión 2 (2016)
+\end{itemize}
+
+Los contenidos se organizan en los \textbf{4 pensamientos matemáticos} definidos por el MEN:
+
+\begin{center}
+\begin{tabularx}{0.95\textwidth}{>{\bfseries}l X}
+\toprule
+\textbf{Pensamiento} & \textbf{¿Qué incluye?} \\
+\midrule
+\textcolor{ytOrange}{Numérico} & Operaciones con naturales, enteros, racionales y reales. Teoría de números. Notación científica. Matemáticas financieras (grados superiores). \\[5pt]
+\textcolor{ytBlue}{Variacional} & Patrones y regularidades. Expresiones algebraicas. Ecuaciones y sistemas de ecuaciones. Funciones. Cálculo diferencial e integral (grado 11°). \\[5pt]
+\textcolor{ytGreen}{Espacial y Métrico} & Geometría de polígonos y sólidos. Teorema de Pitágoras. Trigonometría. Geometría analítica. Secciones cónicas (grados superiores). \\[5pt]
+\textcolor{ytYellow}{Aleatorio} & Estadística descriptiva. Medidas de tendencia central. Probabilidad. Distribuciones. Inferencia estadística (grado 11°). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Ejemplo de contenidos por grado}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{0.95\textwidth}{c X}
+\toprule
+\textbf{Grado} & \textbf{Temas principales} \\
+\midrule
+\textbf{6°} & Operaciones con fracciones, MCD y mcm, polígonos, tablas de frecuencia \\
+\textbf{7°} & Números enteros, proporcionalidad inversa, transformaciones en el plano, mediana \\
+\textbf{8°} & Potenciación, factorización, productos notables, Teorema de Pitágoras \\
+\textbf{9°} & Función lineal y cuadrática, sistemas de ecuaciones, semejanza de triángulos \\
+\textbf{10°} & Trigonometría, secciones cónicas, interés compuesto, correlación \\
+\textbf{11°} & Límites, derivadas, integrales, distribución normal, inferencia estadística \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ══════════════════════════════════════════════
+% 9. PREGUNTAS FRECUENTES
+% ══════════════════════════════════════════════
+\section{Preguntas Frecuentes}
+
+\begin{enumerate}[leftmargin=*, itemsep=10pt, font=\bfseries\color{ytOrange}]
+    \item \textbf{¿Necesito instalar algo?}\\
+    \textcolor{ytGrey}{No. YedaTech funciona directamente desde el navegador web (Chrome, Firefox, Edge, Safari). No requiere descargar ni instalar ninguna aplicación.}
+    
+    \item \textbf{¿El diagnóstico siempre tiene las mismas preguntas?}\\
+    \textcolor{ytGrey}{No. Cada vez que se genera un examen, la inteligencia artificial crea preguntas completamente nuevas basadas en tu grado. Nunca verás el mismo examen dos veces.}
+    
+    \item \textbf{¿El tutor me va a dar las respuestas directamente?}\\
+    \textcolor{ytGrey}{No. El tutor usa el método socrático: te guía con preguntas para que tú mismo descubras la respuesta. Si después de varios intentos no lo logras, te dará pistas cada vez más directas.}
+    
+    \item \textbf{¿Cómo sé si estoy mejorando?}\\
+    \textcolor{ytGrey}{Puedes repetir la evaluación diagnóstica en cualquier momento para comparar resultados. Además, la sección de Analítica muestra tu progreso en gráficas y estadísticas.}
+    
+    \item \textbf{¿Un docente puede ver mi progreso?}\\
+    \textcolor{ytGrey}{Sí, si el docente tiene acceso al panel de administración, puede ver el progreso detallado de cada estudiante, incluyendo diagnósticos, sesiones y patrones de error.}
+    
+    \item \textbf{¿Funciona para todos los grados?}\\
+    \textcolor{ytGrey}{YedaTech cubre los grados de 6° a 11° de bachillerato colombiano, con contenidos alineados al currículo oficial del MEN para cada grado.}
+    
+    \item \textbf{¿Puedo usar YedaTech en el celular?}\\
+    \textcolor{ytGrey}{Sí. La plataforma es responsiva y se adapta a cualquier tamaño de pantalla: computador, tablet o celular.}
+\end{enumerate}
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[fill=ytOrange!5, draw=ytOrange!30, rounded corners=12pt, inner sep=20pt, text width=12cm, align=center] {
+        {\Large\textcolor{ytOrange}{\faIcon{graduation-cap}}}\\[8pt]
+        {\large\textbf{\textcolor{ytDark}{¡Comienza tu viaje de aprendizaje con YedaTech!}}}\\[5pt]
+        {\textcolor{ytGrey}{Cada ejercicio resuelto te acerca más a dominar las matemáticas.}}\\[3pt]
+        {\textcolor{ytGrey}{Recuerda: no se trata de velocidad, sino de \textbf{comprensión}.}}
+    };
+\end{tikzpicture}
+\end{center}
+
+\end{document}

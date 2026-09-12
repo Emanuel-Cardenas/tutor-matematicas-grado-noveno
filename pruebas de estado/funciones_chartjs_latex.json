@@ -1,0 +1,2858 @@
+{
+  "titulo": "Funciones",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.1",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas dentro de textos, preguntas, opciones, tablas y explicaciones se delimitan con LaTeX.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON; los valores matemáticos o unidades dentro de las tablas se escriben en LaTeX cuando aplica.",
+    "graficos": "Los gráficos y figuras están representados como configuraciones de Chart.js.",
+    "respuestas": "claveFuente proviene de la clave comentada en el archivo original; claveValidada es la clave revisada matemáticamente cuando aplica.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Para moneda dentro de LaTeX se usa \\$."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar etiquetas o elementos auxiliares sobre un canvas de Chart.js cuando sea necesario.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n    const dy = (value) => Math.abs(y(value) - y(0));\n\n    function applyStyle(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      applyStyle(shape);\n      if (shape.type === \"text\") {\n        ctx.fillStyle = shape.fill ?? \"#000000\";\n        ctx.fillText(shape.text, x(shape.x), y(shape.y));\n      }\n      if (shape.type === \"circle\") {\n        ctx.beginPath();\n        ctx.arc(x(shape.x), y(shape.y), dx(shape.r), 0, Math.PI * 2);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra cuatro relaciones entre los conjuntos \\(A\\) y \\(B\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Relaciones entre \\(A\\) y \\(B\\)",
+          "columnas": [
+            "Relación I",
+            "Relación II",
+            "Relación III",
+            "Relación IV"
+          ],
+          "filas": [
+            [
+              "\\(1 \\to 5\\)",
+              "\\(1 \\to 5\\)",
+              "\\(1 \\to 5\\)",
+              "\\(1 \\to 5\\)"
+            ],
+            [
+              "\\(2 \\to 7\\)",
+              "\\(2 \\to 7\\)",
+              "\\(1 \\to 7\\)",
+              "\\(2 \\to 7\\)"
+            ],
+            [
+              "\\(3 \\to 9\\)",
+              "\\(2 \\to 9\\)",
+              "\\(2 \\to 9\\)",
+              "\\(3 \\to 5\\)"
+            ],
+            [
+              "\\(4 \\to 11\\)",
+              "\\(3 \\to 11\\)",
+              "\\(3 \\to 11\\)",
+              "\\(4 \\to 11\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuáles de las relaciones anteriores no corresponden a una función de \\(A\\) en \\(B\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solo la relación II."
+        },
+        {
+          "id": "B",
+          "texto": "Solo la relación III."
+        },
+        {
+          "id": "C",
+          "texto": "Las relaciones II y III."
+        },
+        {
+          "id": "D",
+          "texto": "Las relaciones I y IV."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Una relación no es función si un mismo elemento del dominio tiene más de una imagen. En la relación II, \\(2\\) tiene dos imágenes; en la relación III, \\(1\\) tiene dos imágenes."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se define la función \\(f(x)=\\sqrt{2x-6}\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el dominio de \\(f\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x>3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x\\geq 3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x\\geq 6\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x>6\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Para que la raíz sea real se necesita \\(2x-6\\geq 0\\), por tanto \\(x\\geq 3\\)."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Dada la función \\(f(x)=3x^2-2x+1\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el valor de \\(f(-2)\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(9\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(13\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(17\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(21\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(f(-2)=3(-2)^2-2(-2)+1=12+4+1=17\\)."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra algunos valores de la función \\(f\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Valores de la función \\(f\\)",
+          "columnas": [
+            "\\(x\\)",
+            "\\(-2\\)",
+            "\\(0\\)",
+            "\\(2\\)",
+            "\\(4\\)",
+            "\\(6\\)"
+          ],
+          "filas": [
+            [
+              "\\(f(x)\\)",
+              "\\(-3\\)",
+              "\\(1\\)",
+              "\\(5\\)",
+              "\\(9\\)",
+              "\\(13\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál de las siguientes expresiones representa la función \\(f\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(f(x)=2x-1\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(f(x)=2x+1\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(f(x)=x+1\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(f(x)=3x+1\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Como \\(f(0)=1\\), el intercepto es \\(1\\). Además, al aumentar \\(x\\) en \\(2\\), \\(f(x)\\) aumenta en \\(4\\), entonces la pendiente es \\(2\\)."
+      }
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de transporte cobra una tarifa fija de \\(\\$5.000\\) más \\(\\$1.200\\) por kilómetro recorrido. Si \\(d\\) representa la distancia en kilómetros y \\(C\\) el costo total en pesos."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes funciones representa el costo del viaje?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(C(d)=1.200d\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(C(d)=5.000d+1.200\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(C(d)=1.200d+5.000\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(C(d)=6.200d\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "El costo total es una tarifa variable \\(1.200d\\) más una tarifa fija de \\(5.000\\)."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra la función \\(f(x)=-2x+4\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q6_funcion_lineal",
+          "descripcion": "Gráfica de la recta \\(f(x)=-2x+4\\).",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "f(x) = -2x + 4",
+                  "data": [
+                    {
+                      "x": -0.5,
+                      "y": 5.0
+                    },
+                    {
+                      "x": -0.25,
+                      "y": 4.5
+                    },
+                    {
+                      "x": 0.0,
+                      "y": 4.0
+                    },
+                    {
+                      "x": 0.25,
+                      "y": 3.5
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 3.0
+                    },
+                    {
+                      "x": 0.75,
+                      "y": 2.5
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 2.0
+                    },
+                    {
+                      "x": 1.25,
+                      "y": 1.5
+                    },
+                    {
+                      "x": 1.5,
+                      "y": 1.0
+                    },
+                    {
+                      "x": 1.75,
+                      "y": 0.5
+                    },
+                    {
+                      "x": 2.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 2.25,
+                      "y": -0.5
+                    },
+                    {
+                      "x": 2.5,
+                      "y": -1.0
+                    },
+                    {
+                      "x": 2.75,
+                      "y": -1.5
+                    },
+                    {
+                      "x": 3.0,
+                      "y": -2.0
+                    },
+                    {
+                      "x": 3.25,
+                      "y": -2.5
+                    },
+                    {
+                      "x": 3.5,
+                      "y": -3.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Puntos destacados",
+                  "type": "scatter",
+                  "data": [
+                    {
+                      "x": 0,
+                      "y": 4
+                    },
+                    {
+                      "x": 2,
+                      "y": 0
+                    }
+                  ],
+                  "pointRadius": 4
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  },
+                  "min": -1,
+                  "max": 4,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  },
+                  "min": -4,
+                  "max": 6,
+                  "ticks": {
+                    "stepSize": 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál es la pendiente de la función y qué indica en este contexto?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La pendiente es \\(4\\) e indica que cuando \\(x=0\\), \\(f(x)=4\\)."
+        },
+        {
+          "id": "B",
+          "texto": "La pendiente es \\(-2\\) e indica que por cada unidad que aumenta \\(x\\), \\(f(x)\\) disminuye en \\(2\\)."
+        },
+        {
+          "id": "C",
+          "texto": "La pendiente es \\(2\\) e indica que por cada unidad que aumenta \\(x\\), \\(f(x)\\) aumenta en \\(2\\)."
+        },
+        {
+          "id": "D",
+          "texto": "La pendiente es \\(-2\\) e indica que la función no tiene valores positivos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "En \\(f(x)=mx+b\\), la pendiente es \\(m\\). Aquí \\(m=-2\\), lo que indica una disminución de \\(2\\) unidades en \\(f(x)\\) por cada aumento de \\(1\\) en \\(x\\)."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra una función cuadrática \\(f(x)=ax^2+bx+c\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q7_parabola_vertice_ceros",
+          "descripcion": "Parábola con vértice en \\((2,4)\\) y ceros en \\(x=0\\) y \\(x=4\\).",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "f(x)=-(x-2)^2+4",
+                  "data": [
+                    {
+                      "x": -1,
+                      "y": -5
+                    },
+                    {
+                      "x": -0.9,
+                      "y": -4.41
+                    },
+                    {
+                      "x": -0.8,
+                      "y": -3.84
+                    },
+                    {
+                      "x": -0.7,
+                      "y": -3.29
+                    },
+                    {
+                      "x": -0.6,
+                      "y": -2.76
+                    },
+                    {
+                      "x": -0.5,
+                      "y": -2.25
+                    },
+                    {
+                      "x": -0.4,
+                      "y": -1.76
+                    },
+                    {
+                      "x": -0.3,
+                      "y": -1.29
+                    },
+                    {
+                      "x": -0.2,
+                      "y": -0.84
+                    },
+                    {
+                      "x": -0.1,
+                      "y": -0.41
+                    },
+                    {
+                      "x": -0.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 0.1,
+                      "y": 0.39
+                    },
+                    {
+                      "x": 0.2,
+                      "y": 0.76
+                    },
+                    {
+                      "x": 0.3,
+                      "y": 1.11
+                    },
+                    {
+                      "x": 0.4,
+                      "y": 1.44
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 1.75
+                    },
+                    {
+                      "x": 0.6,
+                      "y": 2.04
+                    },
+                    {
+                      "x": 0.7,
+                      "y": 2.31
+                    },
+                    {
+                      "x": 0.8,
+                      "y": 2.56
+                    },
+                    {
+                      "x": 0.9,
+                      "y": 2.79
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 3.0
+                    },
+                    {
+                      "x": 1.1,
+                      "y": 3.19
+                    },
+                    {
+                      "x": 1.2,
+                      "y": 3.36
+                    },
+                    {
+                      "x": 1.3,
+                      "y": 3.51
+                    },
+                    {
+                      "x": 1.4,
+                      "y": 3.64
+                    },
+                    {
+                      "x": 1.5,
+                      "y": 3.75
+                    },
+                    {
+                      "x": 1.6,
+                      "y": 3.84
+                    },
+                    {
+                      "x": 1.7,
+                      "y": 3.91
+                    },
+                    {
+                      "x": 1.8,
+                      "y": 3.96
+                    },
+                    {
+                      "x": 1.9,
+                      "y": 3.99
+                    },
+                    {
+                      "x": 2.0,
+                      "y": 4.0
+                    },
+                    {
+                      "x": 2.1,
+                      "y": 3.99
+                    },
+                    {
+                      "x": 2.2,
+                      "y": 3.96
+                    },
+                    {
+                      "x": 2.3,
+                      "y": 3.91
+                    },
+                    {
+                      "x": 2.4,
+                      "y": 3.84
+                    },
+                    {
+                      "x": 2.5,
+                      "y": 3.75
+                    },
+                    {
+                      "x": 2.6,
+                      "y": 3.64
+                    },
+                    {
+                      "x": 2.7,
+                      "y": 3.51
+                    },
+                    {
+                      "x": 2.8,
+                      "y": 3.36
+                    },
+                    {
+                      "x": 2.9,
+                      "y": 3.19
+                    },
+                    {
+                      "x": 3.0,
+                      "y": 3.0
+                    },
+                    {
+                      "x": 3.1,
+                      "y": 2.79
+                    },
+                    {
+                      "x": 3.2,
+                      "y": 2.56
+                    },
+                    {
+                      "x": 3.3,
+                      "y": 2.31
+                    },
+                    {
+                      "x": 3.4,
+                      "y": 2.04
+                    },
+                    {
+                      "x": 3.5,
+                      "y": 1.75
+                    },
+                    {
+                      "x": 3.6,
+                      "y": 1.44
+                    },
+                    {
+                      "x": 3.7,
+                      "y": 1.11
+                    },
+                    {
+                      "x": 3.8,
+                      "y": 0.76
+                    },
+                    {
+                      "x": 3.9,
+                      "y": 0.39
+                    },
+                    {
+                      "x": 4.0,
+                      "y": -0.0
+                    },
+                    {
+                      "x": 4.1,
+                      "y": -0.41
+                    },
+                    {
+                      "x": 4.2,
+                      "y": -0.84
+                    },
+                    {
+                      "x": 4.3,
+                      "y": -1.29
+                    },
+                    {
+                      "x": 4.4,
+                      "y": -1.76
+                    },
+                    {
+                      "x": 4.5,
+                      "y": -2.25
+                    },
+                    {
+                      "x": 4.6,
+                      "y": -2.76
+                    },
+                    {
+                      "x": 4.7,
+                      "y": -3.29
+                    },
+                    {
+                      "x": 4.8,
+                      "y": -3.84
+                    },
+                    {
+                      "x": 4.9,
+                      "y": -4.41
+                    },
+                    {
+                      "x": 5.0,
+                      "y": -5.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Puntos destacados",
+                  "type": "scatter",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": 4
+                    },
+                    {
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "x": 4,
+                      "y": 0
+                    }
+                  ],
+                  "pointRadius": 4
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  },
+                  "min": -2,
+                  "max": 6,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  },
+                  "min": -5,
+                  "max": 6,
+                  "ticks": {
+                    "stepSize": 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Con base en la gráfica, ¿cuáles son las coordenadas del vértice y cuáles son los ceros de la función?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Vértice \\((2,4)\\); ceros en \\(x=0\\) y \\(x=4\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Vértice \\((4,2)\\); ceros en \\(x=-1\\) y \\(x=5\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Vértice \\((2,4)\\); cero único en \\(x=2\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Vértice \\((0,0)\\); ceros en \\(x=0\\) y \\(x=4\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "La gráfica alcanza su máximo en \\((2,4)\\) y corta el eje \\(x\\) en \\((0,0)\\) y \\((4,0)\\)."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una pelota es lanzada hacia arriba desde el suelo. Su altura \\(h\\), en metros, después de \\(t\\) segundos, está dada por: \\[h(t)=-5t^2+20t\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿En qué momento la pelota alcanza su altura máxima y cuál es esa altura?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "A los \\(2\\ \\text{s}\\), con altura máxima de \\(20\\ \\text{m}\\)."
+        },
+        {
+          "id": "B",
+          "texto": "A los \\(4\\ \\text{s}\\), con altura máxima de \\(20\\ \\text{m}\\)."
+        },
+        {
+          "id": "C",
+          "texto": "A los \\(2\\ \\text{s}\\), con altura máxima de \\(40\\ \\text{m}\\)."
+        },
+        {
+          "id": "D",
+          "texto": "A los \\(4\\ \\text{s}\\), con altura máxima de \\(0\\ \\text{m}\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "El tiempo del vértice es \\(t=-\\frac{20}{2(-5)}=2\\). Luego, \\(h(2)=-5(2)^2+20(2)=20\\)."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La función \\(f(x)=x^2-5x+6\\) tiene dos ceros reales."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuáles son?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x=1\\) y \\(x=6\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x=-2\\) y \\(x=-3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x=2\\) y \\(x=3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x=-1\\) y \\(x=-6\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(x^2-5x+6=(x-2)(x-3)\\), entonces los ceros son \\(x=2\\) y \\(x=3\\)."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra el saldo, en miles de pesos, de una cuenta de ahorros en función del tiempo, en meses."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q10_saldo_ahorros",
+          "descripcion": "Saldo en miles de pesos en función del tiempo.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "Saldo de cuenta",
+                  "data": [
+                    {
+                      "x": 0,
+                      "y": 50
+                    },
+                    {
+                      "x": 1,
+                      "y": 75
+                    },
+                    {
+                      "x": 2,
+                      "y": 100
+                    },
+                    {
+                      "x": 3,
+                      "y": 125
+                    },
+                    {
+                      "x": 4,
+                      "y": 150
+                    },
+                    {
+                      "x": 5,
+                      "y": 175
+                    },
+                    {
+                      "x": 6,
+                      "y": 200
+                    },
+                    {
+                      "x": 7,
+                      "y": 225
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 3,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "Tiempo (meses)"
+                  },
+                  "min": 0,
+                  "max": 8,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "Saldo (miles de pesos)"
+                  },
+                  "min": 0,
+                  "max": 250,
+                  "ticks": {
+                    "stepSize": 50
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál es la tasa de cambio del saldo por mes y cuál es el saldo inicial?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Tasa de cambio: \\(\\$50.000/\\text{mes}\\); saldo inicial: \\(\\$25.000\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Tasa de cambio: \\(\\$25.000/\\text{mes}\\); saldo inicial: \\(\\$50.000\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Tasa de cambio: \\(\\$50.000/\\text{mes}\\); saldo inicial: \\(\\$50.000\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Tasa de cambio: \\(\\$25.000/\\text{mes}\\); saldo inicial: \\(\\$75.000\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El saldo aumenta de \\(50\\) a \\(75\\) miles entre los meses \\(0\\) y \\(1\\), por tanto la tasa es \\(25\\) miles por mes. El saldo inicial es \\(50\\) miles de pesos."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Dadas las funciones \\(f(x)=2x+3\\) y \\(g(x)=x^2-1\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el valor de \\(f(g(3))\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(14\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(19\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(21\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(28\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C corregida en fuente a B",
+        "claveValidada": "B",
+        "estado": "inconsistencia_corregida",
+        "explicacion": "La fuente inicialmente marca C, pero luego corrige: \\(g(3)=3^2-1=8\\) y \\(f(8)=2(8)+3=19\\). La clave validada es B."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se define la función \\(f(x)=\\dfrac{x+2}{x-3}\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el dominio de esta función?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Todos los números reales excepto \\(x=-2\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Todos los números reales excepto \\(x=3\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Todos los números reales excepto \\(x=-3\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Todos los números reales."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El denominador no puede ser cero: \\(x-3\\neq 0\\), luego \\(x\\neq 3\\)."
+      }
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una función \\(f\\) es creciente en un intervalo cuando, al aumentar los valores de \\(x\\) en ese intervalo, los valores de \\(f(x)\\) también aumentan. La gráfica muestra la función \\(g(x)=x^3-3x\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q13_funcion_cubica",
+          "descripcion": "Gráfica de \\(g(x)=x^3-3x\\).",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "g(x)=x^3-3x",
+                  "data": [
+                    {
+                      "x": -2.2,
+                      "y": -4.048
+                    },
+                    {
+                      "x": -2.15,
+                      "y": -3.488
+                    },
+                    {
+                      "x": -2.1,
+                      "y": -2.961
+                    },
+                    {
+                      "x": -2.05,
+                      "y": -2.465
+                    },
+                    {
+                      "x": -2.0,
+                      "y": -2.0
+                    },
+                    {
+                      "x": -1.95,
+                      "y": -1.565
+                    },
+                    {
+                      "x": -1.9,
+                      "y": -1.159
+                    },
+                    {
+                      "x": -1.85,
+                      "y": -0.782
+                    },
+                    {
+                      "x": -1.8,
+                      "y": -0.432
+                    },
+                    {
+                      "x": -1.75,
+                      "y": -0.109
+                    },
+                    {
+                      "x": -1.7,
+                      "y": 0.187
+                    },
+                    {
+                      "x": -1.65,
+                      "y": 0.458
+                    },
+                    {
+                      "x": -1.6,
+                      "y": 0.704
+                    },
+                    {
+                      "x": -1.55,
+                      "y": 0.926
+                    },
+                    {
+                      "x": -1.5,
+                      "y": 1.125
+                    },
+                    {
+                      "x": -1.45,
+                      "y": 1.301
+                    },
+                    {
+                      "x": -1.4,
+                      "y": 1.456
+                    },
+                    {
+                      "x": -1.35,
+                      "y": 1.59
+                    },
+                    {
+                      "x": -1.3,
+                      "y": 1.703
+                    },
+                    {
+                      "x": -1.25,
+                      "y": 1.797
+                    },
+                    {
+                      "x": -1.2,
+                      "y": 1.872
+                    },
+                    {
+                      "x": -1.15,
+                      "y": 1.929
+                    },
+                    {
+                      "x": -1.1,
+                      "y": 1.969
+                    },
+                    {
+                      "x": -1.05,
+                      "y": 1.992
+                    },
+                    {
+                      "x": -1.0,
+                      "y": 2.0
+                    },
+                    {
+                      "x": -0.95,
+                      "y": 1.993
+                    },
+                    {
+                      "x": -0.9,
+                      "y": 1.971
+                    },
+                    {
+                      "x": -0.85,
+                      "y": 1.936
+                    },
+                    {
+                      "x": -0.8,
+                      "y": 1.888
+                    },
+                    {
+                      "x": -0.75,
+                      "y": 1.828
+                    },
+                    {
+                      "x": -0.7,
+                      "y": 1.757
+                    },
+                    {
+                      "x": -0.65,
+                      "y": 1.675
+                    },
+                    {
+                      "x": -0.6,
+                      "y": 1.584
+                    },
+                    {
+                      "x": -0.55,
+                      "y": 1.484
+                    },
+                    {
+                      "x": -0.5,
+                      "y": 1.375
+                    },
+                    {
+                      "x": -0.45,
+                      "y": 1.259
+                    },
+                    {
+                      "x": -0.4,
+                      "y": 1.136
+                    },
+                    {
+                      "x": -0.35,
+                      "y": 1.007
+                    },
+                    {
+                      "x": -0.3,
+                      "y": 0.873
+                    },
+                    {
+                      "x": -0.25,
+                      "y": 0.734
+                    },
+                    {
+                      "x": -0.2,
+                      "y": 0.592
+                    },
+                    {
+                      "x": -0.15,
+                      "y": 0.447
+                    },
+                    {
+                      "x": -0.1,
+                      "y": 0.299
+                    },
+                    {
+                      "x": -0.05,
+                      "y": 0.15
+                    },
+                    {
+                      "x": 0.0,
+                      "y": -0.0
+                    },
+                    {
+                      "x": 0.05,
+                      "y": -0.15
+                    },
+                    {
+                      "x": 0.1,
+                      "y": -0.299
+                    },
+                    {
+                      "x": 0.15,
+                      "y": -0.447
+                    },
+                    {
+                      "x": 0.2,
+                      "y": -0.592
+                    },
+                    {
+                      "x": 0.25,
+                      "y": -0.734
+                    },
+                    {
+                      "x": 0.3,
+                      "y": -0.873
+                    },
+                    {
+                      "x": 0.35,
+                      "y": -1.007
+                    },
+                    {
+                      "x": 0.4,
+                      "y": -1.136
+                    },
+                    {
+                      "x": 0.45,
+                      "y": -1.259
+                    },
+                    {
+                      "x": 0.5,
+                      "y": -1.375
+                    },
+                    {
+                      "x": 0.55,
+                      "y": -1.484
+                    },
+                    {
+                      "x": 0.6,
+                      "y": -1.584
+                    },
+                    {
+                      "x": 0.65,
+                      "y": -1.675
+                    },
+                    {
+                      "x": 0.7,
+                      "y": -1.757
+                    },
+                    {
+                      "x": 0.75,
+                      "y": -1.828
+                    },
+                    {
+                      "x": 0.8,
+                      "y": -1.888
+                    },
+                    {
+                      "x": 0.85,
+                      "y": -1.936
+                    },
+                    {
+                      "x": 0.9,
+                      "y": -1.971
+                    },
+                    {
+                      "x": 0.95,
+                      "y": -1.993
+                    },
+                    {
+                      "x": 1.0,
+                      "y": -2.0
+                    },
+                    {
+                      "x": 1.05,
+                      "y": -1.992
+                    },
+                    {
+                      "x": 1.1,
+                      "y": -1.969
+                    },
+                    {
+                      "x": 1.15,
+                      "y": -1.929
+                    },
+                    {
+                      "x": 1.2,
+                      "y": -1.872
+                    },
+                    {
+                      "x": 1.25,
+                      "y": -1.797
+                    },
+                    {
+                      "x": 1.3,
+                      "y": -1.703
+                    },
+                    {
+                      "x": 1.35,
+                      "y": -1.59
+                    },
+                    {
+                      "x": 1.4,
+                      "y": -1.456
+                    },
+                    {
+                      "x": 1.45,
+                      "y": -1.301
+                    },
+                    {
+                      "x": 1.5,
+                      "y": -1.125
+                    },
+                    {
+                      "x": 1.55,
+                      "y": -0.926
+                    },
+                    {
+                      "x": 1.6,
+                      "y": -0.704
+                    },
+                    {
+                      "x": 1.65,
+                      "y": -0.458
+                    },
+                    {
+                      "x": 1.7,
+                      "y": -0.187
+                    },
+                    {
+                      "x": 1.75,
+                      "y": 0.109
+                    },
+                    {
+                      "x": 1.8,
+                      "y": 0.432
+                    },
+                    {
+                      "x": 1.85,
+                      "y": 0.782
+                    },
+                    {
+                      "x": 1.9,
+                      "y": 1.159
+                    },
+                    {
+                      "x": 1.95,
+                      "y": 1.565
+                    },
+                    {
+                      "x": 2.0,
+                      "y": 2.0
+                    },
+                    {
+                      "x": 2.05,
+                      "y": 2.465
+                    },
+                    {
+                      "x": 2.1,
+                      "y": 2.961
+                    },
+                    {
+                      "x": 2.15,
+                      "y": 3.488
+                    },
+                    {
+                      "x": 2.2,
+                      "y": 4.048
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  },
+                  "min": -2.5,
+                  "max": 2.5,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  },
+                  "min": -3,
+                  "max": 3,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Según la gráfica, ¿en cuál de los siguientes intervalos la función \\(g\\) es decreciente?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((-\\infty,-1)\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((-1,1)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((1,+\\infty)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\((-\\infty,0)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La gráfica desciende entre el máximo local cercano a \\(x=-1\\) y el mínimo local cercano a \\(x=1\\)."
+      }
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La función \\(f\\) está definida por tramos de la siguiente manera: \\[f(x)=\\begin{cases}2x+1 & \\text{si } x<0 \\\\ x^2 & \\text{si } x\\geq 0\\end{cases}\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuáles son los valores de \\(f(-3)\\) y \\(f(4)\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(f(-3)=-5\\) y \\(f(4)=16\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(f(-3)=9\\) y \\(f(4)=9\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(f(-3)=-5\\) y \\(f(4)=9\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(f(-3)=-7\\) y \\(f(4)=16\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Como \\(-3<0\\), \\(f(-3)=2(-3)+1=-5\\). Como \\(4\\geq 0\\), \\(f(4)=4^2=16\\)."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La función inversa \\(f^{-1}\\) de \\(f(x)=3x-9\\) es aquella tal que \\(f(f^{-1}(x))=x\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es \\(f^{-1}(x)\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(f^{-1}(x)=\\dfrac{x-9}{3}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(f^{-1}(x)=3x+9\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(f^{-1}(x)=\\dfrac{x+9}{3}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(f^{-1}(x)=\\dfrac{1}{3x-9}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Si \\(y=3x-9\\), entonces \\(x=\\frac{y+9}{3}\\). Por tanto, \\(f^{-1}(x)=\\frac{x+9}{3}\\)."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un estudiante quiere determinar si el punto \\((3,7)\\) pertenece a la gráfica de la función \\(f(x)=2x^2-4x+1\\). Realiza el cálculo: \\[f(3)=2(3)^2-4(3)+1=18-12+1=7\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Es correcta su conclusión de que el punto \\((3,7)\\) pertenece a la gráfica?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque debería verificar también \\(f(7)=3\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque \\(f(3)=7\\) significa que cuando \\(x=3\\) el valor de la función es \\(7\\)."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque el cálculo \\(2(3)^2\\) está mal hecho."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, pero solo si la función es lineal."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Un punto \\((a,b)\\) pertenece a la gráfica de \\(f\\) si \\(f(a)=b\\). Aquí, \\(f(3)=7\\)."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra los valores de una función \\(h\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Valores de \\(h\\)",
+          "columnas": [
+            "\\(x\\)",
+            "\\(1\\)",
+            "\\(2\\)",
+            "\\(3\\)",
+            "\\(4\\)",
+            "\\(5\\)"
+          ],
+          "filas": [
+            [
+              "\\(h(x)\\)",
+              "\\(2\\)",
+              "\\(4\\)",
+              "\\(8\\)",
+              "\\(16\\)",
+              "\\(32\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál es la expresión que mejor representa a \\(h(x)\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(h(x)=2x\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(h(x)=x^2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(h(x)=2^x\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(h(x)=2x+1\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Los valores se duplican y coinciden con \\(2^1,2^2,2^3,2^4,2^5\\)."
+      }
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "El número de bacterias en un cultivo se duplica cada hora. Si al inicio hay \\(500\\) bacterias, la función que modela el número de bacterias \\(B\\) después de \\(t\\) horas es \\(B(t)=500\\cdot 2^t\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuántas bacterias habrá después de \\(4\\) horas?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(2.000\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(4.000\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(8.000\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(16.000\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(B(4)=500\\cdot 2^4=500\\cdot 16=8.000\\)."
+      }
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra dos funciones lineales \\(f\\) y \\(g\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q19_interseccion_funciones",
+          "descripcion": "Gráfica de \\(f(x)=x+2\\) y \\(g(x)=-x+6\\).",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "f(x)=x+2",
+                  "data": [
+                    {
+                      "x": -0.5,
+                      "y": 1.5
+                    },
+                    {
+                      "x": -0.25,
+                      "y": 1.75
+                    },
+                    {
+                      "x": 0.0,
+                      "y": 2.0
+                    },
+                    {
+                      "x": 0.25,
+                      "y": 2.25
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 2.5
+                    },
+                    {
+                      "x": 0.75,
+                      "y": 2.75
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 3.0
+                    },
+                    {
+                      "x": 1.25,
+                      "y": 3.25
+                    },
+                    {
+                      "x": 1.5,
+                      "y": 3.5
+                    },
+                    {
+                      "x": 1.75,
+                      "y": 3.75
+                    },
+                    {
+                      "x": 2.0,
+                      "y": 4.0
+                    },
+                    {
+                      "x": 2.25,
+                      "y": 4.25
+                    },
+                    {
+                      "x": 2.5,
+                      "y": 4.5
+                    },
+                    {
+                      "x": 2.75,
+                      "y": 4.75
+                    },
+                    {
+                      "x": 3.0,
+                      "y": 5.0
+                    },
+                    {
+                      "x": 3.25,
+                      "y": 5.25
+                    },
+                    {
+                      "x": 3.5,
+                      "y": 5.5
+                    },
+                    {
+                      "x": 3.75,
+                      "y": 5.75
+                    },
+                    {
+                      "x": 4.0,
+                      "y": 6.0
+                    },
+                    {
+                      "x": 4.25,
+                      "y": 6.25
+                    },
+                    {
+                      "x": 4.5,
+                      "y": 6.5
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "g(x)=-x+6",
+                  "data": [
+                    {
+                      "x": -0.5,
+                      "y": 6.5
+                    },
+                    {
+                      "x": -0.25,
+                      "y": 6.25
+                    },
+                    {
+                      "x": 0.0,
+                      "y": 6.0
+                    },
+                    {
+                      "x": 0.25,
+                      "y": 5.75
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 5.5
+                    },
+                    {
+                      "x": 0.75,
+                      "y": 5.25
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 5.0
+                    },
+                    {
+                      "x": 1.25,
+                      "y": 4.75
+                    },
+                    {
+                      "x": 1.5,
+                      "y": 4.5
+                    },
+                    {
+                      "x": 1.75,
+                      "y": 4.25
+                    },
+                    {
+                      "x": 2.0,
+                      "y": 4.0
+                    },
+                    {
+                      "x": 2.25,
+                      "y": 3.75
+                    },
+                    {
+                      "x": 2.5,
+                      "y": 3.5
+                    },
+                    {
+                      "x": 2.75,
+                      "y": 3.25
+                    },
+                    {
+                      "x": 3.0,
+                      "y": 3.0
+                    },
+                    {
+                      "x": 3.25,
+                      "y": 2.75
+                    },
+                    {
+                      "x": 3.5,
+                      "y": 2.5
+                    },
+                    {
+                      "x": 3.75,
+                      "y": 2.25
+                    },
+                    {
+                      "x": 4.0,
+                      "y": 2.0
+                    },
+                    {
+                      "x": 4.25,
+                      "y": 1.75
+                    },
+                    {
+                      "x": 4.5,
+                      "y": 1.5
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0,
+                  "borderDash": [
+                    6,
+                    4
+                  ]
+                },
+                {
+                  "label": "Intersección",
+                  "type": "scatter",
+                  "data": [
+                    {
+                      "x": 2,
+                      "y": 4
+                    }
+                  ],
+                  "pointRadius": 4
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": true
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  },
+                  "min": -1,
+                  "max": 5,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  },
+                  "min": -2,
+                  "max": 8,
+                  "ticks": {
+                    "stepSize": 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿En qué punto se intersectan las funciones \\(f(x)=x+2\\) y \\(g(x)=-x+6\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((1,5)\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((2,4)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((3,3)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\((4,2)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Al resolver \\(x+2=-x+6\\), se obtiene \\(2x=4\\), luego \\(x=2\\). Entonces \\(y=4\\)."
+      }
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La función \\(f(x)=x^2-4x+3\\) se puede escribir en la forma \\(f(x)=(x-h)^2+k\\), donde \\((h,k)\\) es el vértice de la parábola."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuáles son los valores de \\(h\\) y \\(k\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(h=2\\) y \\(k=-1\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(h=-2\\) y \\(k=1\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(h=4\\) y \\(k=3\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(h=2\\) y \\(k=1\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Completando cuadrado: \\(x^2-4x+3=(x-2)^2-1\\), así que \\(h=2\\) y \\(k=-1\\)."
+      }
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se sabe que \\(f(x)=mx+b\\) es una función lineal que pasa por los puntos \\((1,5)\\) y \\((3,11)\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es la ecuación de \\(f\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(f(x)=2x+3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(f(x)=3x+2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(f(x)=2x-3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(f(x)=3x-2\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A corregida en fuente a B",
+        "claveValidada": "B",
+        "estado": "inconsistencia_corregida",
+        "explicacion": "La fuente inicialmente marca A, pero luego corrige: \\(m=\\frac{11-5}{3-1}=3\\) y \\(5=3(1)+b\\), así que \\(b=2\\). La función es \\(f(x)=3x+2\\)."
+      }
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La función \\(f(x)=-x^2+6x-5\\) representa la ganancia, en millones de pesos, de una empresa en función de las unidades producidas \\(x\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Para cuántas unidades la ganancia es máxima, y cuál es esa ganancia máxima?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(3\\) unidades; ganancia máxima de \\(4\\) millones."
+        },
+        {
+          "id": "B",
+          "texto": "\\(3\\) unidades; ganancia máxima de \\(6\\) millones."
+        },
+        {
+          "id": "C",
+          "texto": "\\(6\\) unidades; ganancia máxima de \\(3\\) millones."
+        },
+        {
+          "id": "D",
+          "texto": "\\(5\\) unidades; ganancia máxima de \\(4\\) millones."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "El vértice está en \\(x=-\\frac{6}{2(-1)}=3\\). Luego, \\(f(3)=-9+18-5=4\\)."
+      }
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La ecuación \\(x^2-4x+k=0\\) tiene dos soluciones reales iguales."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál debe ser el valor de \\(k\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(k=2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(k=4\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(k=8\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(k=16\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Para que haya dos soluciones reales iguales, el discriminante debe ser cero: \\((-4)^2-4k=0\\), luego \\(16=4k\\) y \\(k=4\\)."
+      }
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra una función definida por tramos."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q24_funcion_por_tramos",
+          "descripcion": "Gráfica de función por tramos con punto abierto en \\((1,3)\\) y punto cerrado en \\((1,4)\\).",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "x+2 si x<1",
+                  "data": [
+                    {
+                      "x": -3,
+                      "y": -1
+                    },
+                    {
+                      "x": -2.75,
+                      "y": -0.75
+                    },
+                    {
+                      "x": -2.5,
+                      "y": -0.5
+                    },
+                    {
+                      "x": -2.25,
+                      "y": -0.25
+                    },
+                    {
+                      "x": -2.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": -1.75,
+                      "y": 0.25
+                    },
+                    {
+                      "x": -1.5,
+                      "y": 0.5
+                    },
+                    {
+                      "x": -1.25,
+                      "y": 0.75
+                    },
+                    {
+                      "x": -1.0,
+                      "y": 1.0
+                    },
+                    {
+                      "x": -0.75,
+                      "y": 1.25
+                    },
+                    {
+                      "x": -0.5,
+                      "y": 1.5
+                    },
+                    {
+                      "x": -0.25,
+                      "y": 1.75
+                    },
+                    {
+                      "x": 0.0,
+                      "y": 2.0
+                    },
+                    {
+                      "x": 0.25,
+                      "y": 2.25
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 2.5
+                    },
+                    {
+                      "x": 0.75,
+                      "y": 2.75
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 3.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "4 si x≥1",
+                  "data": [
+                    {
+                      "x": 1,
+                      "y": 4
+                    },
+                    {
+                      "x": 5,
+                      "y": 4
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Punto abierto (1,3)",
+                  "type": "scatter",
+                  "data": [
+                    {
+                      "x": 1,
+                      "y": 3
+                    }
+                  ],
+                  "pointRadius": 5,
+                  "pointBackgroundColor": "#ffffff",
+                  "pointBorderWidth": 2
+                },
+                {
+                  "label": "Punto cerrado (1,4)",
+                  "type": "scatter",
+                  "data": [
+                    {
+                      "x": 1,
+                      "y": 4
+                    }
+                  ],
+                  "pointRadius": 5
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": true
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  },
+                  "min": -3,
+                  "max": 5,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  },
+                  "min": -2,
+                  "max": 6,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál de las siguientes expresiones corresponde a la función representada en la gráfica?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(f(x)=\\begin{cases}x+2 & \\text{si } x\\leq 1 \\\\ 4 & \\text{si } x>1\\end{cases}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(f(x)=\\begin{cases}x+2 & \\text{si } x<1 \\\\ 4 & \\text{si } x\\geq 1\\end{cases}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(f(x)=\\begin{cases}x+2 & \\text{si } x<1 \\\\ 4 & \\text{si } x>1\\end{cases}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(f(x)=\\begin{cases}4 & \\text{si } x<1 \\\\ x+2 & \\text{si } x\\geq 1\\end{cases}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El punto abierto en \\((1,3)\\) indica que el tramo \\(x+2\\) no incluye \\(x=1\\). El punto cerrado en \\((1,4)\\) indica que el tramo constante \\(4\\) sí incluye \\(x=1\\)."
+      }
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La función \\(f(x)=|x-3|\\) representa la distancia entre el número \\(x\\) y el número \\(3\\) en la recta numérica."
+      ],
+      "materiales": [],
+      "pregunta": "¿Para cuáles valores de \\(x\\) se cumple que \\(f(x)=5\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x=8\\) únicamente."
+        },
+        {
+          "id": "B",
+          "texto": "\\(x=-2\\) únicamente."
+        },
+        {
+          "id": "C",
+          "texto": "\\(x=8\\) y \\(x=-2\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(x=2\\) y \\(x=-8\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(|x-3|=5\\) implica \\(x-3=5\\) o \\(x-3=-5\\), por tanto \\(x=8\\) o \\(x=-2\\)."
+      }
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se tienen las funciones \\(f(x)=2x-1\\) y \\(g(x)=x+4\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Para qué valor de \\(x\\) se cumple que \\(f(x)=g(x)\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x=3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x=4\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x=5\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x=7\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(2x-1=x+4\\), entonces \\(x=5\\)."
+      }
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La siguiente tabla compara los valores de dos funciones \\(f\\) y \\(g\\) para los mismos valores de \\(x\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Comparación entre \\(f\\) y \\(g\\)",
+          "columnas": [
+            "\\(x\\)",
+            "\\(f(x)=3x+1\\)",
+            "\\(g(x)=x^2\\)"
+          ],
+          "filas": [
+            [
+              "\\(0\\)",
+              "\\(1\\)",
+              "\\(0\\)"
+            ],
+            [
+              "\\(1\\)",
+              "\\(4\\)",
+              "\\(1\\)"
+            ],
+            [
+              "\\(2\\)",
+              "\\(7\\)",
+              "\\(4\\)"
+            ],
+            [
+              "\\(3\\)",
+              "\\(10\\)",
+              "\\(9\\)"
+            ],
+            [
+              "\\(4\\)",
+              "\\(13\\)",
+              "\\(16\\)"
+            ],
+            [
+              "\\(5\\)",
+              "\\(16\\)",
+              "\\(25\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Según la tabla, ¿a partir de qué valor de \\(x\\) la función \\(g\\) supera a la función \\(f\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "A partir de \\(x=3\\)."
+        },
+        {
+          "id": "B",
+          "texto": "A partir de \\(x=4\\)."
+        },
+        {
+          "id": "C",
+          "texto": "A partir de \\(x=5\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Las funciones nunca se cruzan para valores positivos de \\(x\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "En la tabla, para \\(x=4\\), \\(g(4)=16\\) supera a \\(f(4)=13\\)."
+      }
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una estudiante afirma que la función \\(f(x)=\\dfrac{1}{x^2+1}\\) tiene dominio en todos los números reales, ya que el denominador nunca puede ser cero."
+      ],
+      "materiales": [],
+      "pregunta": "¿Es correcta su afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque cuando \\(x=1\\), el denominador es cero."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque \\(x^2+1\\geq 1>0\\) para todo número real \\(x\\), por lo que el denominador nunca es cero."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque para que el dominio sea todos los reales la función debe ser lineal."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, pero solo para valores positivos de \\(x\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Como \\(x^2\\geq 0\\) para todo \\(x\\in\\mathbb{R}\\), entonces \\(x^2+1\\geq 1\\), y el denominador nunca es cero."
+      }
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica de la función \\(f(x)=a\\cdot 2^x\\) pasa por el punto \\((0,3)\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el valor de \\(a\\) y cuál es el valor de \\(f(3)\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(a=3\\); \\(f(3)=24\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(a=3\\); \\(f(3)=18\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(a=2\\); \\(f(3)=24\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(a=1\\); \\(f(3)=8\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Como \\(f(0)=a\\cdot 2^0=a=3\\), entonces \\(a=3\\). Luego, \\(f(3)=3\\cdot 2^3=24\\)."
+      }
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra el recorrido de un ciclista: durante los primeros \\(2\\) minutos aumenta su velocidad uniformemente, luego la mantiene constante \\(3\\) minutos, y finalmente la reduce uniformemente hasta detenerse en el minuto \\(7\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q30_velocidad_ciclista",
+          "descripcion": "Velocidad del ciclista durante \\(7\\) minutos.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "datasets": [
+                {
+                  "label": "Velocidad del ciclista",
+                  "data": [
+                    {
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "x": 2,
+                      "y": 20
+                    },
+                    {
+                      "x": 5,
+                      "y": 20
+                    },
+                    {
+                      "x": 7,
+                      "y": 0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "Tiempo (min)"
+                  },
+                  "min": 0,
+                  "max": 8,
+                  "ticks": {
+                    "stepSize": 1
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "Velocidad (km/h)"
+                  },
+                  "min": 0,
+                  "max": 25,
+                  "ticks": {
+                    "stepSize": 5
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿En cuáles intervalos la velocidad del ciclista es una función creciente, constante y decreciente, respectivamente?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Creciente: \\((2,5)\\); constante: \\((0,2)\\); decreciente: \\((5,7)\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Creciente: \\((0,2)\\); constante: \\((2,5)\\); decreciente: \\((5,7)\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Creciente: \\((0,5)\\); constante: ninguno; decreciente: \\((5,7)\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Creciente: \\((0,2)\\); constante: \\((5,7)\\); decreciente: \\((2,5)\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La velocidad aumenta de \\(0\\) a \\(2\\), se mantiene en \\(20\\) de \\(2\\) a \\(5\\), y disminuye de \\(5\\) a \\(7\\)."
+      }
+    }
+  ],
+  "resumenRespuestas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "claveFuente": "C corregida en fuente a B",
+      "claveValidada": "B",
+      "estado": "inconsistencia_corregida"
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "claveFuente": "A corregida en fuente a B",
+      "claveValidada": "B",
+      "estado": "inconsistencia_corregida"
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "validada"
+    }
+  ],
+  "observacionesValidacion": [
+    {
+      "id": 11,
+      "numero": 11,
+      "detalle": "La fuente contiene una clave inicial C, pero la justificación corrige la respuesta a B."
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "detalle": "La fuente contiene una clave inicial A, pero la revisión corrige la respuesta a B."
+    }
+  ]
+}

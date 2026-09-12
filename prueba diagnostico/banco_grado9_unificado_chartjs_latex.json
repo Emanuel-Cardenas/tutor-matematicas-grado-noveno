@@ -1,0 +1,4357 @@
+{
+  "titulo": "Banco de Preguntas -- Grado 9°",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.1",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas dentro de textos, preguntas, opciones, tablas y explicaciones se delimitan con LaTeX.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON; los valores matemáticos o unidades dentro de las tablas se escriben en LaTeX cuando aplica.",
+    "graficos": "Los gráficos y figuras están representados como configuraciones de Chart.js. Las figuras que Chart.js no dibuja de forma nativa usan el plugin canvasShapesPlugin incluido en este mismo JSON.",
+    "respuestas": "Como los archivos LaTeX originales no incluyen clave explícita, las respuestas quedan como pendiente_validacion.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Para moneda dentro de LaTeX se usa \\$."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar diagramas, figuras geométricas, etiquetas y líneas de dimensión sobre un canvas de Chart.js.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n    const dy = (value) => Math.abs(y(value) - y(0));\n\n    function applyStyle(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n\n    function drawArrowHead(x1, y1, x2, y2, size = 6) {\n      const angle = Math.atan2(y2 - y1, x2 - x1);\n      ctx.beginPath();\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));\n      ctx.stroke();\n    }\n\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      applyStyle(shape);\n\n      if (shape.type === \"circle\") {\n        ctx.beginPath();\n        ctx.arc(x(shape.x), y(shape.y), dx(shape.r), 0, Math.PI * 2);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"rectangle\") {\n        const left = x(shape.x);\n        const top = y(shape.y + shape.height);\n        const width = x(shape.x + shape.width) - x(shape.x);\n        const height = y(shape.y) - y(shape.y + shape.height);\n        ctx.beginPath();\n        ctx.rect(left, top, width, height);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"polygon\") {\n        ctx.beginPath();\n        shape.points.forEach((point, index) => {\n          const px = x(point[0]);\n          const py = y(point[1]);\n          if (index === 0) ctx.moveTo(px, py);\n          else ctx.lineTo(px, py);\n        });\n        ctx.closePath();\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"line\") {\n        ctx.beginPath();\n        ctx.moveTo(x(shape.x1), y(shape.y1));\n        ctx.lineTo(x(shape.x2), y(shape.y2));\n        ctx.stroke();\n      }\n\n      if (shape.type === \"dimensionLine\") {\n        const x1 = x(shape.x1);\n        const y1 = y(shape.y1);\n        const x2 = x(shape.x2);\n        const y2 = y(shape.y2);\n        ctx.beginPath();\n        ctx.moveTo(x1, y1);\n        ctx.lineTo(x2, y2);\n        ctx.stroke();\n        if (shape.arrows !== false) {\n          drawArrowHead(x2, y2, x1, y1, shape.arrowSize ?? 6);\n          drawArrowHead(x1, y1, x2, y2, shape.arrowSize ?? 6);\n        }\n        if (shape.label) {\n          ctx.fillStyle = shape.labelColor ?? shape.stroke ?? \"#000000\";\n          ctx.fillText(shape.label, (x1 + x2) / 2, (y1 + y2) / 2 + (shape.labelOffsetY ?? -10));\n        }\n      }\n\n      if (shape.type === \"ellipseArc\") {\n        const centerX = x(shape.x);\n        const centerY = y(shape.y);\n        const radiusX = dx(shape.radiusX);\n        const radiusY = dy(shape.radiusY);\n        ctx.beginPath();\n        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, shape.startAngle ?? 0, shape.endAngle ?? Math.PI, shape.anticlockwise ?? false);\n        if (shape.closePath) {\n          ctx.lineTo(x(shape.closeToX ?? (shape.x - shape.radiusX)), y(shape.closeToY ?? shape.y));\n          ctx.closePath();\n        }\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"text\") {\n        ctx.fillStyle = shape.fill ?? \"#000000\";\n        ctx.fillText(shape.text, x(shape.x), y(shape.y));\n      }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes propiedades justifica que \\(3(x + 5) = 3x + 15\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Conmutativa de la multiplicación."
+        },
+        {
+          "id": "B",
+          "texto": "Asociativa de la suma."
+        },
+        {
+          "id": "C",
+          "texto": "Distributiva de la multiplicación respecto a la suma."
+        },
+        {
+          "id": "D",
+          "texto": "Elemento neutro de la multiplicación."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula \\(\\sqrt{48} - 2\\sqrt{3} + \\sqrt{75}\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(5\\sqrt{3}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(7\\sqrt{3}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(9\\sqrt{3}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(11\\sqrt{3}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Racionaliza y simplifica \\(\\frac{10}{\\sqrt{5}}\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(2\\sqrt{5}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(5\\sqrt{2}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{10\\sqrt{5}}{5}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\sqrt{50}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula \\(\\left(\\frac{3}{4}\\right)^{-2}\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{9}{16}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{16}{9}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(-\\frac{9}{16}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{4}{3}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes afirmaciones es VERDADERA?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Todo número irracional es también racional."
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\sqrt{4}\\) es un número irracional."
+        },
+        {
+          "id": "C",
+          "texto": "Entre dos reales siempre existe otro real."
+        },
+        {
+          "id": "D",
+          "texto": "Los irracionales forman un conjunto cerrado bajo la suma."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Compara \\(\\sqrt{10}\\) con \\(3{,}1\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\sqrt{10} < 3{,}1\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\sqrt{10} = 3{,}1\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\sqrt{10} > 3{,}1\\)"
+        },
+        {
+          "id": "D",
+          "texto": "No se pueden comparar."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Evalúa \\(f(x) = \\frac{x^2 - 1}{x + 1}\\) para \\(x = 3\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "1"
+        },
+        {
+          "id": "B",
+          "texto": "2"
+        },
+        {
+          "id": "C",
+          "texto": "3"
+        },
+        {
+          "id": "D",
+          "texto": "4"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál es la forma simplificada de \\(\\frac{\\sqrt{12} \\cdot \\sqrt{3}}{\\sqrt{4}}\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "3"
+        },
+        {
+          "id": "B",
+          "texto": "\\(3\\sqrt{2}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{3}{2}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{\\sqrt{36}}{2}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Resuelve por sustitución: \\(\\begin{cases} x + y = 12 \\\\ 3x - y = 8 \\end{cases}\\)",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 4,\\ y = 8\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = 5,\\ y = 7\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 6,\\ y = 6\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = 7,\\ y = 5\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Resuelve por eliminación: \\(\\begin{cases} 5x + 2y = 16 \\\\ 3x - 2y = 0 \\end{cases}\\)",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 1,\\ y = 5{,}5\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = 2,\\ y = 3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 3,\\ y = 0{,}5\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = 4,\\ y = 6\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "El sistema \\(\\begin{cases} 2x + y = 5 \\\\ 4x + 2y = 10 \\end{cases}\\) tiene:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solución única: \\(x=1, y=3\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Infinitas soluciones (sistema dependiente)."
+        },
+        {
+          "id": "C",
+          "texto": "Sin solución (sistema inconsistente)."
+        },
+        {
+          "id": "D",
+          "texto": "Solo la solución \\(x=0, y=5\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál es el tipo de sistema si las gráficas de las dos ecuaciones son rectas paralelas?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Consistente independiente"
+        },
+        {
+          "id": "B",
+          "texto": "Consistente dependiente"
+        },
+        {
+          "id": "C",
+          "texto": "Inconsistente"
+        },
+        {
+          "id": "D",
+          "texto": "Indeterminado"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La suma de dos números es 48 y su diferencia es 14. ¿Cuál es el mayor?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "27"
+        },
+        {
+          "id": "B",
+          "texto": "29"
+        },
+        {
+          "id": "C",
+          "texto": "31"
+        },
+        {
+          "id": "D",
+          "texto": "33"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un cine vende boletas adulto a \\$14.000 y niño a \\$9.000. Se vendieron 150 boletas por \\$1.750.000. ¿Cuántas boletas adulto se vendieron?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "50"
+        },
+        {
+          "id": "B",
+          "texto": "60"
+        },
+        {
+          "id": "C",
+          "texto": "70"
+        },
+        {
+          "id": "D",
+          "texto": "80"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q15_grafico",
+          "descripcion": "Gráfico convertido desde TikZ/PGFPlots.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "2*x-1",
+                  "data": [
+                    {
+                      "x": -1.0,
+                      "y": -3.0
+                    },
+                    {
+                      "x": -0.825,
+                      "y": -2.65
+                    },
+                    {
+                      "x": -0.65,
+                      "y": -2.3
+                    },
+                    {
+                      "x": -0.475,
+                      "y": -1.95
+                    },
+                    {
+                      "x": -0.3,
+                      "y": -1.6
+                    },
+                    {
+                      "x": -0.125,
+                      "y": -1.25
+                    },
+                    {
+                      "x": 0.05,
+                      "y": -0.9
+                    },
+                    {
+                      "x": 0.225,
+                      "y": -0.55
+                    },
+                    {
+                      "x": 0.4,
+                      "y": -0.2
+                    },
+                    {
+                      "x": 0.575,
+                      "y": 0.15
+                    },
+                    {
+                      "x": 0.75,
+                      "y": 0.5
+                    },
+                    {
+                      "x": 0.925,
+                      "y": 0.85
+                    },
+                    {
+                      "x": 1.1,
+                      "y": 1.2
+                    },
+                    {
+                      "x": 1.275,
+                      "y": 1.55
+                    },
+                    {
+                      "x": 1.45,
+                      "y": 1.9
+                    },
+                    {
+                      "x": 1.625,
+                      "y": 2.25
+                    },
+                    {
+                      "x": 1.8,
+                      "y": 2.6
+                    },
+                    {
+                      "x": 1.975,
+                      "y": 2.95
+                    },
+                    {
+                      "x": 2.15,
+                      "y": 3.3
+                    },
+                    {
+                      "x": 2.325,
+                      "y": 3.65
+                    },
+                    {
+                      "x": 2.5,
+                      "y": 4.0
+                    },
+                    {
+                      "x": 2.675,
+                      "y": 4.35
+                    },
+                    {
+                      "x": 2.85,
+                      "y": 4.7
+                    },
+                    {
+                      "x": 3.025,
+                      "y": 5.05
+                    },
+                    {
+                      "x": 3.2,
+                      "y": 5.4
+                    },
+                    {
+                      "x": 3.375,
+                      "y": 5.75
+                    },
+                    {
+                      "x": 3.55,
+                      "y": 6.1
+                    },
+                    {
+                      "x": 3.725,
+                      "y": 6.45
+                    },
+                    {
+                      "x": 3.9,
+                      "y": 6.8
+                    },
+                    {
+                      "x": 4.075,
+                      "y": 7.15
+                    },
+                    {
+                      "x": 4.25,
+                      "y": 7.5
+                    },
+                    {
+                      "x": 4.425,
+                      "y": 7.85
+                    },
+                    {
+                      "x": 4.6,
+                      "y": 8.2
+                    },
+                    {
+                      "x": 4.775,
+                      "y": 8.55
+                    },
+                    {
+                      "x": 4.95,
+                      "y": 8.9
+                    },
+                    {
+                      "x": 5.125,
+                      "y": 9.25
+                    },
+                    {
+                      "x": 5.3,
+                      "y": 9.6
+                    },
+                    {
+                      "x": 5.475,
+                      "y": 9.95
+                    },
+                    {
+                      "x": 5.65,
+                      "y": 10.3
+                    },
+                    {
+                      "x": 5.825,
+                      "y": 10.65
+                    },
+                    {
+                      "x": 6.0,
+                      "y": 11.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0,
+                  "showLine": true
+                },
+                {
+                  "label": "-x+5",
+                  "data": [
+                    {
+                      "x": -1.0,
+                      "y": 6.0
+                    },
+                    {
+                      "x": -0.825,
+                      "y": 5.825
+                    },
+                    {
+                      "x": -0.65,
+                      "y": 5.65
+                    },
+                    {
+                      "x": -0.475,
+                      "y": 5.475
+                    },
+                    {
+                      "x": -0.3,
+                      "y": 5.3
+                    },
+                    {
+                      "x": -0.125,
+                      "y": 5.125
+                    },
+                    {
+                      "x": 0.05,
+                      "y": 4.95
+                    },
+                    {
+                      "x": 0.225,
+                      "y": 4.775
+                    },
+                    {
+                      "x": 0.4,
+                      "y": 4.6
+                    },
+                    {
+                      "x": 0.575,
+                      "y": 4.425
+                    },
+                    {
+                      "x": 0.75,
+                      "y": 4.25
+                    },
+                    {
+                      "x": 0.925,
+                      "y": 4.075
+                    },
+                    {
+                      "x": 1.1,
+                      "y": 3.9
+                    },
+                    {
+                      "x": 1.275,
+                      "y": 3.725
+                    },
+                    {
+                      "x": 1.45,
+                      "y": 3.55
+                    },
+                    {
+                      "x": 1.625,
+                      "y": 3.375
+                    },
+                    {
+                      "x": 1.8,
+                      "y": 3.2
+                    },
+                    {
+                      "x": 1.975,
+                      "y": 3.025
+                    },
+                    {
+                      "x": 2.15,
+                      "y": 2.85
+                    },
+                    {
+                      "x": 2.325,
+                      "y": 2.675
+                    },
+                    {
+                      "x": 2.5,
+                      "y": 2.5
+                    },
+                    {
+                      "x": 2.675,
+                      "y": 2.325
+                    },
+                    {
+                      "x": 2.85,
+                      "y": 2.15
+                    },
+                    {
+                      "x": 3.025,
+                      "y": 1.975
+                    },
+                    {
+                      "x": 3.2,
+                      "y": 1.8
+                    },
+                    {
+                      "x": 3.375,
+                      "y": 1.625
+                    },
+                    {
+                      "x": 3.55,
+                      "y": 1.45
+                    },
+                    {
+                      "x": 3.725,
+                      "y": 1.275
+                    },
+                    {
+                      "x": 3.9,
+                      "y": 1.1
+                    },
+                    {
+                      "x": 4.075,
+                      "y": 0.925
+                    },
+                    {
+                      "x": 4.25,
+                      "y": 0.75
+                    },
+                    {
+                      "x": 4.425,
+                      "y": 0.575
+                    },
+                    {
+                      "x": 4.6,
+                      "y": 0.4
+                    },
+                    {
+                      "x": 4.775,
+                      "y": 0.225
+                    },
+                    {
+                      "x": 4.95,
+                      "y": 0.05
+                    },
+                    {
+                      "x": 5.125,
+                      "y": -0.125
+                    },
+                    {
+                      "x": 5.3,
+                      "y": -0.3
+                    },
+                    {
+                      "x": 5.475,
+                      "y": -0.475
+                    },
+                    {
+                      "x": 5.65,
+                      "y": -0.65
+                    },
+                    {
+                      "x": 5.825,
+                      "y": -0.825
+                    },
+                    {
+                      "x": 6.0,
+                      "y": -1.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0,
+                  "showLine": true
+                },
+                {
+                  "label": "Punto destacado",
+                  "data": [
+                    {
+                      "x": 2.0,
+                      "y": 3.0
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": true
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Observa la siguiente gráfica e identifica la solución del sistema:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((1, 4)\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((2, 3)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((3, 2)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\((4, 1)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Resuelve: \\(\\begin{cases} \\frac{x}{2} + \\frac{y}{3} = 5 \\\\ x - y = 2 \\end{cases}\\)",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 6,\\ y = 4\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = 7,\\ y = 5\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 8,\\ y = 6\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = 9,\\ y = 7\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Los ángulos de un triángulo satisfacen: \\(A = 2B\\) y \\(C = B + 30°\\). ¿Cuánto mide el ángulo \\(B\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "30°"
+        },
+        {
+          "id": "B",
+          "texto": "36°"
+        },
+        {
+          "id": "C",
+          "texto": "38°"
+        },
+        {
+          "id": "D",
+          "texto": "40°"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Para qué valor de \\(k\\) el sistema \\(\\begin{cases} 3x + ky = 6 \\\\ 6x + 4y = 12 \\end{cases}\\) tiene infinitas soluciones?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(k = 1\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(k = 2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(k = 3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(k = 4\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál es el término general de la sucesión 5, 9, 13, 17, ...?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(a_n = 4n + 1\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(a_n = 4n - 1\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(a_n = 5n - 1\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(a_n = 3n + 2\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "El décimo término de la progresión aritmética con \\(a_1 = 3\\) y \\(d = 5\\) es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "43"
+        },
+        {
+          "id": "B",
+          "texto": "47"
+        },
+        {
+          "id": "C",
+          "texto": "48"
+        },
+        {
+          "id": "D",
+          "texto": "53"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "En la sucesión geométrica 2, 6, 18, 54, ..., el término \\(a_6\\) es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "162"
+        },
+        {
+          "id": "B",
+          "texto": "324"
+        },
+        {
+          "id": "C",
+          "texto": "486"
+        },
+        {
+          "id": "D",
+          "texto": "972"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La suma de los primeros 20 términos de la sucesión 1, 3, 5, 7, ... es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "361"
+        },
+        {
+          "id": "B",
+          "texto": "380"
+        },
+        {
+          "id": "C",
+          "texto": "400"
+        },
+        {
+          "id": "D",
+          "texto": "420"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula la suma de los primeros 8 términos de la geométrica 2, 6, 18, ...:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "3.278"
+        },
+        {
+          "id": "B",
+          "texto": "4.374"
+        },
+        {
+          "id": "C",
+          "texto": "6.560"
+        },
+        {
+          "id": "D",
+          "texto": "6.562"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿La sucesión \\(1, 4, 9, 16, 25, ...\\) es aritmética, geométrica o ninguna?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Aritmética con \\(d = 3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "Geométrica con \\(r = 4\\)"
+        },
+        {
+          "id": "C",
+          "texto": "Ninguna de las dos"
+        },
+        {
+          "id": "D",
+          "texto": "Ambas simultáneamente"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "El tercer término de una progresión aritmética es 11 y el séptimo término es 23. ¿Cuál es el primer término?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "3"
+        },
+        {
+          "id": "B",
+          "texto": "5"
+        },
+        {
+          "id": "C",
+          "texto": "7"
+        },
+        {
+          "id": "D",
+          "texto": "9"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La diferencia común de la progresión aritmética cuyo tercer término es 11 y séptimo término es 23, es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "2"
+        },
+        {
+          "id": "B",
+          "texto": "3"
+        },
+        {
+          "id": "C",
+          "texto": "4"
+        },
+        {
+          "id": "D",
+          "texto": "6"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes fórmulas recursivas describe la sucesión de Fibonacci?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(a_n = a_{n-1} + 2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(a_n = a_{n-1} \\times 2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(a_n = a_{n-1} + a_{n-2}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(a_n = a_{n-1} - a_{n-2}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Una empresa duplica su producción cada trimestre. Si en enero produce 500 unidades, ¿cuántas produce en el cuarto trimestre (es decir, \\(a_4\\))?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "2.000"
+        },
+        {
+          "id": "B",
+          "texto": "3.000"
+        },
+        {
+          "id": "C",
+          "texto": "4.000"
+        },
+        {
+          "id": "D",
+          "texto": "8.000"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes relaciones NO es una función?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\{(1,2),(2,4),(3,6)\\}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\{(1,3),(2,3),(3,3)\\}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\{(1,2),(1,5),(2,4)\\}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\{(0,0),(1,1),(2,4)\\}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La función \\(f(x) = x^2 - 6x + 8\\) tiene vértice en:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((3, -1)\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((3, 8)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((-3, -1)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\((6, -1)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 31,
+      "numero": 31,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Los ceros de \\(f(x) = x^2 - 6x + 8\\) son:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 2\\) y \\(x = 4\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = -2\\) y \\(x = -4\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 1\\) y \\(x = 8\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = -1\\) y \\(x = 8\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 32,
+      "numero": 32,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q32_grafico",
+          "descripcion": "Gráfico convertido desde TikZ/PGFPlots.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "x^2-4*x+3",
+                  "data": [
+                    {
+                      "x": -1.0,
+                      "y": 8.0
+                    },
+                    {
+                      "x": -0.85,
+                      "y": 7.122
+                    },
+                    {
+                      "x": -0.7,
+                      "y": 6.29
+                    },
+                    {
+                      "x": -0.55,
+                      "y": 5.503
+                    },
+                    {
+                      "x": -0.4,
+                      "y": 4.76
+                    },
+                    {
+                      "x": -0.25,
+                      "y": 4.062
+                    },
+                    {
+                      "x": -0.1,
+                      "y": 3.41
+                    },
+                    {
+                      "x": 0.05,
+                      "y": 2.802
+                    },
+                    {
+                      "x": 0.2,
+                      "y": 2.24
+                    },
+                    {
+                      "x": 0.35,
+                      "y": 1.722
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 1.25
+                    },
+                    {
+                      "x": 0.65,
+                      "y": 0.823
+                    },
+                    {
+                      "x": 0.8,
+                      "y": 0.44
+                    },
+                    {
+                      "x": 0.95,
+                      "y": 0.103
+                    },
+                    {
+                      "x": 1.1,
+                      "y": -0.19
+                    },
+                    {
+                      "x": 1.25,
+                      "y": -0.438
+                    },
+                    {
+                      "x": 1.4,
+                      "y": -0.64
+                    },
+                    {
+                      "x": 1.55,
+                      "y": -0.797
+                    },
+                    {
+                      "x": 1.7,
+                      "y": -0.91
+                    },
+                    {
+                      "x": 1.85,
+                      "y": -0.978
+                    },
+                    {
+                      "x": 2.0,
+                      "y": -1.0
+                    },
+                    {
+                      "x": 2.15,
+                      "y": -0.978
+                    },
+                    {
+                      "x": 2.3,
+                      "y": -0.91
+                    },
+                    {
+                      "x": 2.45,
+                      "y": -0.797
+                    },
+                    {
+                      "x": 2.6,
+                      "y": -0.64
+                    },
+                    {
+                      "x": 2.75,
+                      "y": -0.438
+                    },
+                    {
+                      "x": 2.9,
+                      "y": -0.19
+                    },
+                    {
+                      "x": 3.05,
+                      "y": 0.102
+                    },
+                    {
+                      "x": 3.2,
+                      "y": 0.44
+                    },
+                    {
+                      "x": 3.35,
+                      "y": 0.822
+                    },
+                    {
+                      "x": 3.5,
+                      "y": 1.25
+                    },
+                    {
+                      "x": 3.65,
+                      "y": 1.723
+                    },
+                    {
+                      "x": 3.8,
+                      "y": 2.24
+                    },
+                    {
+                      "x": 3.95,
+                      "y": 2.803
+                    },
+                    {
+                      "x": 4.1,
+                      "y": 3.41
+                    },
+                    {
+                      "x": 4.25,
+                      "y": 4.062
+                    },
+                    {
+                      "x": 4.4,
+                      "y": 4.76
+                    },
+                    {
+                      "x": 4.55,
+                      "y": 5.502
+                    },
+                    {
+                      "x": 4.7,
+                      "y": 6.29
+                    },
+                    {
+                      "x": 4.85,
+                      "y": 7.122
+                    },
+                    {
+                      "x": 5.0,
+                      "y": 8.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0,
+                  "showLine": true
+                },
+                {
+                  "label": "Punto destacado",
+                  "data": [
+                    {
+                      "x": 2.0,
+                      "y": -1.0
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": true
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "f(x)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Observa la gráfica de la parábola e identifica el vértice:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((1, 0)\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((2, -1)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((3, 0)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\((0, 3)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 33,
+      "numero": 33,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La parábola \\(f(x) = -3x^2 + 6x - 1\\), ¿abre hacia arriba o hacia abajo y por qué?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Hacia arriba, porque el coeficiente de \\(x^2\\) es negativo."
+        },
+        {
+          "id": "B",
+          "texto": "Hacia abajo, porque el coeficiente de \\(x^2\\) es negativo."
+        },
+        {
+          "id": "C",
+          "texto": "Hacia arriba, porque el coeficiente independiente es negativo."
+        },
+        {
+          "id": "D",
+          "texto": "Hacia abajo, porque la pendiente es negativa."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 34,
+      "numero": 34,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula los ceros de \\(f(x) = 2x^2 - 7x + 3\\) usando la fórmula cuadrática:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 3\\) y \\(x = \\frac{1}{2}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = -3\\) y \\(x = \\frac{1}{2}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 1\\) y \\(x = 3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = 1{,}5\\) y \\(x = 1\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 35,
+      "numero": 35,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿En qué intervalo es negativa la función \\(f(x) = x^2 - 5x + 4\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((- \\infty, 1)\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\((1, 4)\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\((4, +\\infty)\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\((-\\infty, 1) \\cup (4, +\\infty)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 36,
+      "numero": 36,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La función \\(f(x) = x^2 + bx + c\\) pasa por los puntos \\((0, 6)\\) y \\((1, 4)\\). ¿Cuánto valen \\(b\\) y \\(c\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(b = -3,\\ c = 6\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(b = 3,\\ c = -6\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(b = -4,\\ c = 6\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(b = 2,\\ c = 6\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 37,
+      "numero": 37,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula \\(f(g(2))\\) si \\(f(x) = 3x - 1\\) y \\(g(x) = x^2 + 1\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "10"
+        },
+        {
+          "id": "B",
+          "texto": "12"
+        },
+        {
+          "id": "C",
+          "texto": "14"
+        },
+        {
+          "id": "D",
+          "texto": "16"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 38,
+      "numero": 38,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La pendiente de la recta que une \\((−3, 7)\\) y \\((2, −3)\\) es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(-2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(-\\frac{2}{5}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{2}{5}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 39,
+      "numero": 39,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes conjuntos de medidas NO forma un triángulo rectángulo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "6, 8, 10"
+        },
+        {
+          "id": "B",
+          "texto": "5, 12, 13"
+        },
+        {
+          "id": "C",
+          "texto": "7, 24, 25"
+        },
+        {
+          "id": "D",
+          "texto": "9, 16, 25"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 40,
+      "numero": 40,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un árbol proyecta una sombra de 12 m. Al mismo tiempo, una vara de 2 m proyecta una sombra de 3 m. ¿Cuánto mide el árbol?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "6 m"
+        },
+        {
+          "id": "B",
+          "texto": "7 m"
+        },
+        {
+          "id": "C",
+          "texto": "8 m"
+        },
+        {
+          "id": "D",
+          "texto": "9 m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 41,
+      "numero": 41,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Dos triángulos semejantes tienen razón de semejanza 3:5. Si el área del triángulo pequeño es 18 cm², ¿cuál es el área del grande?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "30 cm²"
+        },
+        {
+          "id": "B",
+          "texto": "45 cm²"
+        },
+        {
+          "id": "C",
+          "texto": "50 cm²"
+        },
+        {
+          "id": "D",
+          "texto": "90 cm²"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 42,
+      "numero": 42,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q42_grafico",
+          "descripcion": "Gráfico convertido desde TikZ/PGFPlots.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "y",
+                  "data": [
+                    {
+                      "x": 0.0,
+                      "y": 1.0
+                    },
+                    {
+                      "x": 8.0,
+                      "y": 1.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 4,
+                  "showLine": true,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Serie 2",
+                  "data": [
+                    {
+                      "x": 0.0,
+                      "y": 4.0
+                    },
+                    {
+                      "x": 8.0,
+                      "y": 4.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 4,
+                  "showLine": true,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Serie 3",
+                  "data": [
+                    {
+                      "x": 1.0,
+                      "y": 1.0
+                    },
+                    {
+                      "x": 2.5,
+                      "y": 4.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 4,
+                  "showLine": true,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Serie 4",
+                  "data": [
+                    {
+                      "x": 5.0,
+                      "y": 1.0
+                    },
+                    {
+                      "x": 6.5,
+                      "y": 4.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 4,
+                  "showLine": true,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.5,
+              "plugins": {
+                "legend": {
+                  "display": true
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "En la siguiente figura, halla \\(x\\) usando el Teorema de Tales con las medidas indicadas:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 4\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = 5\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 6\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = 7\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 43,
+      "numero": 43,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La diagonal de un rectángulo de \\(7\\) cm \\(\\times\\) \\(24\\) cm mide:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "25 cm"
+        },
+        {
+          "id": "B",
+          "texto": "26 cm"
+        },
+        {
+          "id": "C",
+          "texto": "27 cm"
+        },
+        {
+          "id": "D",
+          "texto": "28 cm"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 76,
+      "numero": 76,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "En un triángulo rectángulo con cateto opuesto 5 y cateto adyacente 12, ¿cuánto mide \\(\\sin\\theta\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{5}{12}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{12}{13}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{5}{13}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{13}{5}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 77,
+      "numero": 77,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Si \\(\\cos\\alpha = \\frac{5}{13}\\), ¿cuánto mide \\(\\tan\\alpha\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{5}{12}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{12}{13}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{12}{5}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{13}{12}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 78,
+      "numero": 78,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula la altura de una torre si desde un punto a 60 m de su base el ángulo de elevación es \\(40°\\). (Usa \\(\\tan 40° \\approx 0{,}839\\))",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "40,3 m"
+        },
+        {
+          "id": "B",
+          "texto": "48,2 m"
+        },
+        {
+          "id": "C",
+          "texto": "50,3 m"
+        },
+        {
+          "id": "D",
+          "texto": "71,6 m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 79,
+      "numero": 79,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Verifica la identidad pitagórica: \\(\\sin^2(30°) + \\cos^2(30°)\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{1}{2}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{3}{4}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{7}{4}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(1\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 80,
+      "numero": 80,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "En un triángulo rectángulo, si \\(\\tan\\beta = 1\\), entonces el ángulo \\(\\beta\\) mide:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "30°"
+        },
+        {
+          "id": "B",
+          "texto": "45°"
+        },
+        {
+          "id": "C",
+          "texto": "60°"
+        },
+        {
+          "id": "D",
+          "texto": "90°"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 81,
+      "numero": 81,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Desde un avión a 2.000 m de altura se observa una ciudad con ángulo de depresión de 30°. ¿A qué distancia horizontal está la ciudad? (Usa \\(\\tan 30° \\approx 0{,}577\\))",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "1.154 m"
+        },
+        {
+          "id": "B",
+          "texto": "2.500 m"
+        },
+        {
+          "id": "C",
+          "texto": "3.464 m"
+        },
+        {
+          "id": "D",
+          "texto": "4.000 m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 82,
+      "numero": 82,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q82_grafico",
+          "descripcion": "Gráfico convertido desde TikZ/PGFPlots.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "sin(x)",
+                  "data": [
+                    {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 9.0,
+                      "y": 0.156
+                    },
+                    {
+                      "x": 18.0,
+                      "y": 0.309
+                    },
+                    {
+                      "x": 27.0,
+                      "y": 0.454
+                    },
+                    {
+                      "x": 36.0,
+                      "y": 0.588
+                    },
+                    {
+                      "x": 45.0,
+                      "y": 0.707
+                    },
+                    {
+                      "x": 54.0,
+                      "y": 0.809
+                    },
+                    {
+                      "x": 63.0,
+                      "y": 0.891
+                    },
+                    {
+                      "x": 72.0,
+                      "y": 0.951
+                    },
+                    {
+                      "x": 81.0,
+                      "y": 0.988
+                    },
+                    {
+                      "x": 90.0,
+                      "y": 1.0
+                    },
+                    {
+                      "x": 99.0,
+                      "y": 0.988
+                    },
+                    {
+                      "x": 108.0,
+                      "y": 0.951
+                    },
+                    {
+                      "x": 117.0,
+                      "y": 0.891
+                    },
+                    {
+                      "x": 126.0,
+                      "y": 0.809
+                    },
+                    {
+                      "x": 135.0,
+                      "y": 0.707
+                    },
+                    {
+                      "x": 144.0,
+                      "y": 0.588
+                    },
+                    {
+                      "x": 153.0,
+                      "y": 0.454
+                    },
+                    {
+                      "x": 162.0,
+                      "y": 0.309
+                    },
+                    {
+                      "x": 171.0,
+                      "y": 0.156
+                    },
+                    {
+                      "x": 180.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 189.0,
+                      "y": -0.156
+                    },
+                    {
+                      "x": 198.0,
+                      "y": -0.309
+                    },
+                    {
+                      "x": 207.0,
+                      "y": -0.454
+                    },
+                    {
+                      "x": 216.0,
+                      "y": -0.588
+                    },
+                    {
+                      "x": 225.0,
+                      "y": -0.707
+                    },
+                    {
+                      "x": 234.0,
+                      "y": -0.809
+                    },
+                    {
+                      "x": 243.0,
+                      "y": -0.891
+                    },
+                    {
+                      "x": 252.0,
+                      "y": -0.951
+                    },
+                    {
+                      "x": 261.0,
+                      "y": -0.988
+                    },
+                    {
+                      "x": 270.0,
+                      "y": -1.0
+                    },
+                    {
+                      "x": 279.0,
+                      "y": -0.988
+                    },
+                    {
+                      "x": 288.0,
+                      "y": -0.951
+                    },
+                    {
+                      "x": 297.0,
+                      "y": -0.891
+                    },
+                    {
+                      "x": 306.0,
+                      "y": -0.809
+                    },
+                    {
+                      "x": 315.0,
+                      "y": -0.707
+                    },
+                    {
+                      "x": 324.0,
+                      "y": -0.588
+                    },
+                    {
+                      "x": 333.0,
+                      "y": -0.454
+                    },
+                    {
+                      "x": 342.0,
+                      "y": -0.309
+                    },
+                    {
+                      "x": 351.0,
+                      "y": -0.156
+                    },
+                    {
+                      "x": 360.0,
+                      "y": -0.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0,
+                  "showLine": true
+                },
+                {
+                  "label": "cos(x)",
+                  "data": [
+                    {
+                      "x": 0.0,
+                      "y": 1.0
+                    },
+                    {
+                      "x": 9.0,
+                      "y": 0.988
+                    },
+                    {
+                      "x": 18.0,
+                      "y": 0.951
+                    },
+                    {
+                      "x": 27.0,
+                      "y": 0.891
+                    },
+                    {
+                      "x": 36.0,
+                      "y": 0.809
+                    },
+                    {
+                      "x": 45.0,
+                      "y": 0.707
+                    },
+                    {
+                      "x": 54.0,
+                      "y": 0.588
+                    },
+                    {
+                      "x": 63.0,
+                      "y": 0.454
+                    },
+                    {
+                      "x": 72.0,
+                      "y": 0.309
+                    },
+                    {
+                      "x": 81.0,
+                      "y": 0.156
+                    },
+                    {
+                      "x": 90.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 99.0,
+                      "y": -0.156
+                    },
+                    {
+                      "x": 108.0,
+                      "y": -0.309
+                    },
+                    {
+                      "x": 117.0,
+                      "y": -0.454
+                    },
+                    {
+                      "x": 126.0,
+                      "y": -0.588
+                    },
+                    {
+                      "x": 135.0,
+                      "y": -0.707
+                    },
+                    {
+                      "x": 144.0,
+                      "y": -0.809
+                    },
+                    {
+                      "x": 153.0,
+                      "y": -0.891
+                    },
+                    {
+                      "x": 162.0,
+                      "y": -0.951
+                    },
+                    {
+                      "x": 171.0,
+                      "y": -0.988
+                    },
+                    {
+                      "x": 180.0,
+                      "y": -1.0
+                    },
+                    {
+                      "x": 189.0,
+                      "y": -0.988
+                    },
+                    {
+                      "x": 198.0,
+                      "y": -0.951
+                    },
+                    {
+                      "x": 207.0,
+                      "y": -0.891
+                    },
+                    {
+                      "x": 216.0,
+                      "y": -0.809
+                    },
+                    {
+                      "x": 225.0,
+                      "y": -0.707
+                    },
+                    {
+                      "x": 234.0,
+                      "y": -0.588
+                    },
+                    {
+                      "x": 243.0,
+                      "y": -0.454
+                    },
+                    {
+                      "x": 252.0,
+                      "y": -0.309
+                    },
+                    {
+                      "x": 261.0,
+                      "y": -0.156
+                    },
+                    {
+                      "x": 270.0,
+                      "y": -0.0
+                    },
+                    {
+                      "x": 279.0,
+                      "y": 0.156
+                    },
+                    {
+                      "x": 288.0,
+                      "y": 0.309
+                    },
+                    {
+                      "x": 297.0,
+                      "y": 0.454
+                    },
+                    {
+                      "x": 306.0,
+                      "y": 0.588
+                    },
+                    {
+                      "x": 315.0,
+                      "y": 0.707
+                    },
+                    {
+                      "x": 324.0,
+                      "y": 0.809
+                    },
+                    {
+                      "x": 333.0,
+                      "y": 0.891
+                    },
+                    {
+                      "x": 342.0,
+                      "y": 0.951
+                    },
+                    {
+                      "x": 351.0,
+                      "y": 0.988
+                    },
+                    {
+                      "x": 360.0,
+                      "y": 1.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0,
+                  "showLine": true
+                },
+                {
+                  "label": "Punto destacado",
+                  "data": [
+                    {
+                      "x": 45.0,
+                      "y": 0.707
+                    }
+                  ],
+                  "pointRadius": 4,
+                  "showLine": false
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.4,
+              "plugins": {
+                "legend": {
+                  "display": true
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "x$ (grados)"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "La siguiente gráfica muestra \\(y = \\sin(x)\\) e \\(y = \\cos(x)\\) en \\([0°, 360°]\\). ¿En qué ángulo se intersectan por primera vez?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 0°\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = 45°\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 90°\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = 135°\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 83,
+      "numero": 83,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Si en un triángulo rectángulo la hipotenusa es 10 cm y un ángulo agudo es 37°, ¿cuánto mide el cateto opuesto a ese ángulo? (Usa \\(\\sin 37° \\approx 0{,}60\\))",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "5 cm"
+        },
+        {
+          "id": "B",
+          "texto": "6 cm"
+        },
+        {
+          "id": "C",
+          "texto": "7 cm"
+        },
+        {
+          "id": "D",
+          "texto": "8 cm"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 84,
+      "numero": 84,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes valores de \\(\\sin\\theta\\) es imposible?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(0{,}5\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(-0{,}8\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(1{,}2\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(0{,}99\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 85,
+      "numero": 85,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Las razones trigonométricas dependen del ángulo y no de:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La posición del ángulo en el triángulo."
+        },
+        {
+          "id": "B",
+          "texto": "El tamaño del triángulo rectángulo."
+        },
+        {
+          "id": "C",
+          "texto": "La relación entre cateto e hipotenusa."
+        },
+        {
+          "id": "D",
+          "texto": "El valor del ángulo."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 86,
+      "numero": 86,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula el volumen de un prisma triangular con base de área 24 cm² y altura 10 cm:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "80 cm³"
+        },
+        {
+          "id": "B",
+          "texto": "120 cm³"
+        },
+        {
+          "id": "C",
+          "texto": "240 cm³"
+        },
+        {
+          "id": "D",
+          "texto": "480 cm³"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 87,
+      "numero": 87,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "El área total de un cilindro de radio 3 cm y altura 8 cm es (usa \\(\\pi \\approx 3{,}14\\)):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "150,72 cm²"
+        },
+        {
+          "id": "B",
+          "texto": "169,56 cm²"
+        },
+        {
+          "id": "C",
+          "texto": "207,24 cm²"
+        },
+        {
+          "id": "D",
+          "texto": "226,08 cm²"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 88,
+      "numero": 88,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La esfera de radio 4 cm tiene volumen (usa \\(V = \\frac{4}{3}\\pi r^3\\), \\(\\pi \\approx 3{,}14\\)):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "100,48 cm³"
+        },
+        {
+          "id": "B",
+          "texto": "200,96 cm³"
+        },
+        {
+          "id": "C",
+          "texto": "267,95 cm³"
+        },
+        {
+          "id": "D",
+          "texto": "401,92 cm³"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 89,
+      "numero": 89,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Las paredes (sin techo ni piso) de una habitación de 6 m \\(\\times\\) 4 m \\(\\times\\) 3 m tienen área:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "48 m²"
+        },
+        {
+          "id": "B",
+          "texto": "60 m²"
+        },
+        {
+          "id": "C",
+          "texto": "72 m²"
+        },
+        {
+          "id": "D",
+          "texto": "120 m²"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 90,
+      "numero": 90,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un recipiente cilíndrico de radio 5 cm y altura 12 cm se llena de agua. ¿Cuántos litros contiene? (1 L = 1.000 cm³)",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "0,471 L"
+        },
+        {
+          "id": "B",
+          "texto": "0,942 L"
+        },
+        {
+          "id": "C",
+          "texto": "1,884 L"
+        },
+        {
+          "id": "D",
+          "texto": "3,768 L"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 91,
+      "numero": 91,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Construye mentalmente la tabla de frecuencias para los datos: 12, 15, 12, 18, 20, 15, 12, 18, 20, 15. ¿Cuál es la moda?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "12 y 15"
+        },
+        {
+          "id": "B",
+          "texto": "12"
+        },
+        {
+          "id": "C",
+          "texto": "15"
+        },
+        {
+          "id": "D",
+          "texto": "18"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 92,
+      "numero": 92,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Para los datos 8, 12, 10, 14, 16, la varianza es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "6"
+        },
+        {
+          "id": "B",
+          "texto": "8"
+        },
+        {
+          "id": "C",
+          "texto": "10"
+        },
+        {
+          "id": "D",
+          "texto": "12"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 93,
+      "numero": 93,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "El rango del conjunto \\(\\{4, 7, 2, 9, 5, 11, 3\\}\\) es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "7"
+        },
+        {
+          "id": "B",
+          "texto": "8"
+        },
+        {
+          "id": "C",
+          "texto": "9"
+        },
+        {
+          "id": "D",
+          "texto": "11"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 94,
+      "numero": 94,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q94_grafico",
+          "descripcion": "Gráfico convertido desde TikZ/PGFPlots.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "[10-20]",
+                "[20-30]",
+                "[30-40]",
+                "[40-50]"
+              ],
+              "datasets": [
+                {
+                  "label": "Frecuencia",
+                  "data": [
+                    5.0,
+                    16.0,
+                    11.0,
+                    8.0
+                  ],
+                  "borderWidth": 1
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.5,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Intervalos"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "Frecuencia"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Observa el histograma e identifica el intervalo con mayor frecuencia:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\([10-20]\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\([20-30]\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\([30-40]\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\([40-50]\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 95,
+      "numero": 95,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Qué indica que la desviación estándar de un conjunto sea 0?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Los datos son muy variables."
+        },
+        {
+          "id": "B",
+          "texto": "La media es cero."
+        },
+        {
+          "id": "C",
+          "texto": "Todos los datos son iguales al promedio."
+        },
+        {
+          "id": "D",
+          "texto": "El conjunto tiene un solo elemento."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 96,
+      "numero": 96,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La media ponderada de un estudiante con notas: Matemáticas 4,5 (peso 4), Español 3,8 (peso 3), Ciencias 4,2 (peso 3) es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "4,08"
+        },
+        {
+          "id": "B",
+          "texto": "4,12"
+        },
+        {
+          "id": "C",
+          "texto": "4,18"
+        },
+        {
+          "id": "D",
+          "texto": "4,25"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 97,
+      "numero": 97,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿De cuántas formas pueden ordenarse 5 libros en un estante?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "25"
+        },
+        {
+          "id": "B",
+          "texto": "60"
+        },
+        {
+          "id": "C",
+          "texto": "120"
+        },
+        {
+          "id": "D",
+          "texto": "360"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 98,
+      "numero": 98,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿De cuántas maneras pueden elegirse presidente y vicepresidente de un grupo de 9 estudiantes?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "36"
+        },
+        {
+          "id": "B",
+          "texto": "56"
+        },
+        {
+          "id": "C",
+          "texto": "72"
+        },
+        {
+          "id": "D",
+          "texto": "81"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 99,
+      "numero": 99,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuántos subconjuntos de 3 elementos se pueden formar con un conjunto de 6 elementos?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "15"
+        },
+        {
+          "id": "B",
+          "texto": "18"
+        },
+        {
+          "id": "C",
+          "texto": "20"
+        },
+        {
+          "id": "D",
+          "texto": "24"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 100,
+      "numero": 100,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Si hay 4 camisas, 3 pantalones y 2 pares de zapatos, ¿cuántos atuendos diferentes se pueden formar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "9"
+        },
+        {
+          "id": "B",
+          "texto": "18"
+        },
+        {
+          "id": "C",
+          "texto": "24"
+        },
+        {
+          "id": "D",
+          "texto": "48"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 101,
+      "numero": 101,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula \\(C(7, 3)\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "21"
+        },
+        {
+          "id": "B",
+          "texto": "28"
+        },
+        {
+          "id": "C",
+          "texto": "35"
+        },
+        {
+          "id": "D",
+          "texto": "42"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 102,
+      "numero": 102,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Se lanzan tres monedas. La probabilidad de obtener exactamente 2 caras es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{1}{8}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{1}{4}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{3}{8}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{1}{2}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 103,
+      "numero": 103,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "En una urna con 5 rojas y 4 azules, se sacan 2 sin reemplazo. La probabilidad de que ambas sean rojas es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{5}{18}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{5}{16}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{5}{9}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{25}{81}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 104,
+      "numero": 104,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "De 30 personas, 15 saben inglés, 12 saben francés y 5 saben ambos. ¿Cuántas no saben ninguno?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "5"
+        },
+        {
+          "id": "B",
+          "texto": "7"
+        },
+        {
+          "id": "C",
+          "texto": "8"
+        },
+        {
+          "id": "D",
+          "texto": "10"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 105,
+      "numero": 105,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La probabilidad de obtener una figura (J, Q, K) al sacar una carta de una baraja de 52:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{1}{13}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{3}{52}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{3}{13}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{12}{52}\\) (igual a C)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 106,
+      "numero": 106,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuántos números de 3 cifras distintas se pueden formar con los dígitos 1, 2, 3, 4, 5?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "60"
+        },
+        {
+          "id": "B",
+          "texto": "90"
+        },
+        {
+          "id": "C",
+          "texto": "120"
+        },
+        {
+          "id": "D",
+          "texto": "150"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 107,
+      "numero": 107,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un cohete tiene altura \\(h(t) = -5t^2 + 20t + 10\\) metros. ¿A qué altura alcanza su máximo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "25 m"
+        },
+        {
+          "id": "B",
+          "texto": "30 m"
+        },
+        {
+          "id": "C",
+          "texto": "35 m"
+        },
+        {
+          "id": "D",
+          "texto": "40 m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 108,
+      "numero": 108,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Resuelve \\(x^2 - 7x + 12 = 0\\). La suma de las dos raíces es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(-7\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(7\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(12\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(-12\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 109,
+      "numero": 109,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Dos trenes parten simultáneamente en sentidos opuestos a 75 km/h y 95 km/h. ¿Cuándo están a 510 km de distancia?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "2 h"
+        },
+        {
+          "id": "B",
+          "texto": "2{,}5 h"
+        },
+        {
+          "id": "C",
+          "texto": "3 h"
+        },
+        {
+          "id": "D",
+          "texto": "3{,}5 h"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 110,
+      "numero": 110,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La productividad de un trabajador es \\(P(h) = -h^2 + 8h + 5\\). ¿Cuántas horas de trabajo maximizan la productividad?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "3 h"
+        },
+        {
+          "id": "B",
+          "texto": "4 h"
+        },
+        {
+          "id": "C",
+          "texto": "5 h"
+        },
+        {
+          "id": "D",
+          "texto": "6 h"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 111,
+      "numero": 111,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La suma de tres términos en progresión aritmética es 33 y el mayor es el doble del menor. ¿Cuál es el menor?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "7"
+        },
+        {
+          "id": "B",
+          "texto": "8"
+        },
+        {
+          "id": "C",
+          "texto": "9"
+        },
+        {
+          "id": "D",
+          "texto": "11"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 112,
+      "numero": 112,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "En un grupo de 40 estudiantes el 30\\% reprobaron. De los que aprobaron, el 50\\% obtuvo más de 4,0. ¿Cuántos estudiantes aprobaron con más de 4,0?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "12"
+        },
+        {
+          "id": "B",
+          "texto": "14"
+        },
+        {
+          "id": "C",
+          "texto": "16"
+        },
+        {
+          "id": "D",
+          "texto": "20"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 113,
+      "numero": 113,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Dos ciudades A y B están a 200 km. Un automóvil parte de A a 80 km/h y otro de B a 70 km/h en sentido contrario. ¿En cuánto tiempo se encuentran?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "1 h"
+        },
+        {
+          "id": "B",
+          "texto": "1{,}3 h"
+        },
+        {
+          "id": "C",
+          "texto": "1{,}5 h"
+        },
+        {
+          "id": "D",
+          "texto": "2 h"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 114,
+      "numero": 114,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Para cuáles valores de \\(x\\) es \\(f(x) = x^2 - 4 > 0\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x > 2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(-2 < x < 2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x < -2\\) o \\(x > 2\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x > -2\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 115,
+      "numero": 115,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "El área de un triángulo rectángulo es 24 cm² y un cateto mide 6 cm. ¿Cuánto mide la hipotenusa?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "8 cm"
+        },
+        {
+          "id": "B",
+          "texto": "10 cm"
+        },
+        {
+          "id": "C",
+          "texto": "12 cm"
+        },
+        {
+          "id": "D",
+          "texto": "14 cm"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 116,
+      "numero": 116,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Una función cuadrática tiene raíces \\(x = -1\\) y \\(x = 4\\). ¿Cuál es la ecuación con coeficiente líder 1?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x^2 - 3x - 4\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x^2 + 3x - 4\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x^2 - 4x - 1\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x^2 + 4x + 1\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 117,
+      "numero": 117,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q117_grafico",
+          "descripcion": "Gráfico convertido desde TikZ/PGFPlots.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": [
+                {
+                  "label": "a_n",
+                  "data": [
+                    {
+                      "x": 1.0,
+                      "y": 3.0
+                    },
+                    {
+                      "x": 2.0,
+                      "y": 6.0
+                    },
+                    {
+                      "x": 3.0,
+                      "y": 9.0
+                    },
+                    {
+                      "x": 4.0,
+                      "y": 12.0
+                    },
+                    {
+                      "x": 5.0,
+                      "y": 15.0
+                    }
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 4,
+                  "showLine": true,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.5,
+              "plugins": {
+                "legend": {
+                  "display": false
+                }
+              },
+              "scales": {
+                "x": {
+                  "type": "linear",
+                  "title": {
+                    "display": true,
+                    "text": "n"
+                  }
+                },
+                "y": {
+                  "title": {
+                    "display": true,
+                    "text": "a_n"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "En la siguiente gráfica de una sucesión aritmética, identifica la diferencia común \\(d\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(d = 2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(d = 3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(d = 4\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(d = 5\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 118,
+      "numero": 118,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Si \\(f(x) = 2x^2 - 8\\) y \\(g(x) = \\sqrt{x + 4}\\), calcula \\((f \\circ g)(5)\\):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "2"
+        },
+        {
+          "id": "B",
+          "texto": "6"
+        },
+        {
+          "id": "C",
+          "texto": "10"
+        },
+        {
+          "id": "D",
+          "texto": "14"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 119,
+      "numero": 119,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un vendedor gana una comisión del 8\\% sobre ventas superiores a \\$500.000. Si vende \\$1.200.000, ¿cuánto gana de comisión?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\$40.000"
+        },
+        {
+          "id": "B",
+          "texto": "\\$56.000"
+        },
+        {
+          "id": "C",
+          "texto": "\\$96.000"
+        },
+        {
+          "id": "D",
+          "texto": "\\$56.000"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 120,
+      "numero": 120,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula \\(P(5, 3)\\) (permutaciones de 5 elementos tomados de 3):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "20"
+        },
+        {
+          "id": "B",
+          "texto": "30"
+        },
+        {
+          "id": "C",
+          "texto": "60"
+        },
+        {
+          "id": "D",
+          "texto": "120"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 121,
+      "numero": 121,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "En el sistema de ecuaciones \\(\\begin{cases} ax + 2y = 4 \\\\ 3x + y = 5 \\end{cases}\\), si \\(x = 2\\) y \\(y = -1\\), ¿cuánto vale \\(a\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "1"
+        },
+        {
+          "id": "B",
+          "texto": "2"
+        },
+        {
+          "id": "C",
+          "texto": "3"
+        },
+        {
+          "id": "D",
+          "texto": "4"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 122,
+      "numero": 122,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La función \\(g(x) = \\frac{1}{x-3}\\) NO está definida para:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(x = 0\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(x = 1\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(x = 3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(x = -3\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 123,
+      "numero": 123,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un examen tiene 10 preguntas de las cuales se deben responder 7. ¿De cuántas formas pueden elegirse las 7?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "100"
+        },
+        {
+          "id": "B",
+          "texto": "120"
+        },
+        {
+          "id": "C",
+          "texto": "150"
+        },
+        {
+          "id": "D",
+          "texto": "210"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 124,
+      "numero": 124,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Si la razón de semejanza de dos triángulos es 2:3 y el perímetro del triángulo menor es 30 cm, el perímetro del mayor es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "40 cm"
+        },
+        {
+          "id": "B",
+          "texto": "45 cm"
+        },
+        {
+          "id": "C",
+          "texto": "50 cm"
+        },
+        {
+          "id": "D",
+          "texto": "60 cm"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 125,
+      "numero": 125,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Calcula la probabilidad de que al lanzar dos dados la suma sea mayor que 9:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\frac{1}{9}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\frac{5}{36}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\frac{6}{36}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\frac{1}{6}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 126,
+      "numero": 126,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "Un recipiente tiene forma de cono invertido con radio 6 cm y altura 10 cm. Su volumen es (usa \\(\\pi \\approx 3{,}14\\)):",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "188,4 cm³"
+        },
+        {
+          "id": "B",
+          "texto": "376,8 cm³"
+        },
+        {
+          "id": "C",
+          "texto": "565,2 cm³"
+        },
+        {
+          "id": "D",
+          "texto": "1.130,4 cm³"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 127,
+      "numero": 127,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "La progresión geométrica \\(a, ar, ar^2, ...\\) tiene \\(a_1 = 2\\) y \\(a_4 = 54\\). La razón \\(r\\) es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "2"
+        },
+        {
+          "id": "B",
+          "texto": "3"
+        },
+        {
+          "id": "C",
+          "texto": "4"
+        },
+        {
+          "id": "D",
+          "texto": "6"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    },
+    {
+      "id": 128,
+      "numero": 128,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes funciones cuadráticas tiene su vértice en un punto mínimo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(f(x) = -x^2 + 4x - 1\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(f(x) = -3x^2 + 2x\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(f(x) = 2x^2 - 4x + 1\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(f(x) = -(x-2)^2 + 5\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "pendiente_validacion",
+        "explicacion": "Pendiente de validación: el archivo LaTeX original no incluye clave de respuesta explícita."
+      }
+    }
+  ]
+}

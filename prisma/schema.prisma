@@ -1,0 +1,349 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  username        String   @unique
+  passwordHash    String
+  fullName        String?
+  role            String   @default("student") // "student" | "admin"
+  currentLevel    Int      @default(1)
+  currentTopic    String?
+  schoolGrade     Int?
+  themePreference String   @default("dark")
+  createdAt       DateTime @default(now())
+  lastLogin       DateTime?
+
+  sessions          Session[]
+  diagnosticResults DiagnosticResult[]
+  studentProfile    StudentProfile?
+  parent            Parent?
+  topicMasteries    TopicMastery[]
+  contentResults    ContentDiagnosticResult[]
+  studyPlanProgress StudyPlanProgress[]
+
+  // ══ Relaciones de Mensajería ══
+  adminConvos      Conversation[]    @relation("AdminConversations")
+  studentConvos    Conversation[]    @relation("StudentConversations")
+  sentMessages     DirectMessage[]   @relation("SentMessages")
+
+  // ══ Asignaciones de Contenido ══
+  contentAssignments ContentAssignment[] @relation("StudentAssignments")
+}
+
+model Topic {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  orderIndex  Int
+  category    String?
+  questions   Question[]
+}
+
+model Question {
+  id              String  @id @default(uuid())
+  topicId         Int
+  content         String
+  correctAnswer   String
+  solutionSteps   String?
+  difficultyLevel Int
+  questionType    String
+  hints           String?
+  metadata        String?
+
+  topic        Topic         @relation(fields: [topicId], references: [id])
+  interactions Interaction[]
+}
+
+model Session {
+  id                 String    @id @default(uuid())
+  userId             String
+  startedAt          DateTime  @default(now())
+  endedAt            DateTime?
+  questionsAttempted Int       @default(0)
+  questionsCorrect   Int       @default(0)
+  accuracyRate       Float?
+  sessionType        String    @default("practice")
+  summary            String?
+
+  user         User            @relation(fields: [userId], references: [id])
+  interactions Interaction[]
+  metrics      SessionMetrics?
+}
+
+model Interaction {
+  id               String   @id @default(uuid())
+  sessionId        String
+  questionId       String?
+  studentMessage   String
+  tutorResponse    String
+  isCorrect        Boolean?
+  timeSpentSeconds Int?
+  attemptNumber    Int      @default(1)
+  errorType        String?
+  difficultyAtTime Int?
+  createdAt        DateTime @default(now())
+  agentMetadata    String?
+
+  session  Session   @relation(fields: [sessionId], references: [id])
+  question Question? @relation(fields: [questionId], references: [id])
+}
+
+model DiagnosticResult {
+  id                String   @id @default(uuid())
+  userId            String
+  score             Int
+  totalQuestions    Int
+  assignedLevel     Int
+  topicScores       String?
+  completedAt       DateTime @default(now())
+  schoolGrade       Int?
+  totalTimeMs       Int?
+  aiAnalysis        String?
+  aiRecommendations String?
+  aiDiagnosis       String?
+
+  user              User                @relation(fields: [userId], references: [id])
+  answers           DiagnosticAnswer[]
+  studyPlanProgress StudyPlanProgress[]
+}
+
+model DiagnosticAnswer {
+  id              String   @id @default(uuid())
+  diagnosticId    String
+  questionIndex   Int
+  questionText    String
+  options         String
+  correctOption   String
+  selectedOption  String?
+  isCorrect       Boolean
+  timeSpentMs     Int      @default(0)
+  topic           String
+  difficulty      String
+  explanation     String?
+  createdAt       DateTime @default(now())
+
+  diagnostic DiagnosticResult @relation(fields: [diagnosticId], references: [id])
+}
+
+model SessionMetrics {
+  id                 String  @id @default(uuid())
+  sessionId          String  @unique
+  avgTimePerQuestion Float?
+  accuracyTrend      Float?
+  streakCorrect      Int     @default(0)
+  streakIncorrect    Int     @default(0)
+  difficultyChanges  Int     @default(0)
+  detailedMetrics    String?
+
+  session Session @relation(fields: [sessionId], references: [id])
+}
+
+model StudentProfile {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  weakTopics             String?  // JSON: ["fracciones", "ecuaciones"]
+  strongTopics           String?  // JSON: ["aritmética", "porcentajes"]
+  commonErrorPatterns    String?  // JSON: {"conceptual": 45, "procedural": 30, ...}
+  learningSpeed          String   @default("medium") // slow, medium, fast
+  preferredStyle         String   @default("paso-a-paso") // visual, paso-a-paso, analogias
+  totalSessionsCompleted Int      @default(0)
+  totalTimeMinutes       Int      @default(0)
+  lastMisconceptions     String?  // JSON: últimos errores conceptuales
+  lastSessionSummary     String?  // Resumen IA de la última sesión (Capa 2)
+  gamificationData       String?  // JSON: {totalXP, badges[], currentStreak, dailyStreak, ...}
+  notificationsData      String?  // JSON: [{id, type, title, message, isRead, createdAt}]
+  spacedRepetitionData   String?  // JSON: {topicName: {interval, easeFactor, repetitions, nextReview}}
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Parent {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  fullName     String?
+  childId      String   @unique
+  createdAt    DateTime @default(now())
+  lastLogin    DateTime?
+
+  child User @relation(fields: [childId], references: [id])
+}
+
+model TopicMastery {
+  id               String   @id @default(uuid())
+  userId           String
+  topicName        String
+  questionsTotal   Int      @default(0)
+  questionsCorrect Int      @default(0)
+  masteryLevel     Float    @default(0)
+  lastPracticed    DateTime @default(now())
+  isMastered       Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, topicName])
+}
+
+// ══════════════════════════════════════════════════
+// CONTENIDO DEL PROFESOR — Sistema Híbrido
+// ══════════════════════════════════════════════════
+
+model TeacherContent {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  topic         String
+  fileName      String
+  filePath      String
+  fileSize      Int
+  mimeType      String
+  schoolGrade   Int
+  extractedText String?
+  keyConcepts   String?
+  status        String   @default("processing")
+  uploadedBy    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  questions     ContentQuestion[]
+  results       ContentDiagnosticResult[]
+  assignments   ContentAssignment[]
+}
+
+model ContentQuestion {
+  id              String  @id @default(uuid())
+  contentId       String
+  text            String
+  options         String
+  correctOption   String
+  topic           String
+  subtopic        String?
+  difficulty      String  @default("media")
+  explanation     String?
+  conceptRelated  String?
+  isApproved      Boolean @default(false)
+  isManual        Boolean @default(false)
+  createdAt       DateTime @default(now())
+
+  content      TeacherContent          @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  answers      ContentDiagnosticAnswer[]
+}
+
+model ContentDiagnosticResult {
+  id             String   @id @default(uuid())
+  userId         String
+  contentId      String
+  attemptNumber  Int      @default(1)
+  score          Int
+  totalQuestions Int
+  percentage     Float
+  aiAnalysis     String?
+  aiDiagnosis    String?
+  totalTimeMs    Int?
+  completedAt    DateTime @default(now())
+
+  user        User                       @relation(fields: [userId], references: [id])
+  content     TeacherContent             @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  answers     ContentDiagnosticAnswer[]
+}
+
+model ContentDiagnosticAnswer {
+  id              String   @id @default(uuid())
+  resultId        String
+  questionId      String
+  selectedOption  String?
+  isCorrect       Boolean
+  timeSpentMs     Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  result    ContentDiagnosticResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  question  ContentQuestion         @relation(fields: [questionId], references: [id])
+}
+
+// ══════════════════════════════════════════════════
+// SISTEMA DE MENSAJERÍA DIRECTA — Chat Admin ↔ Estudiante
+// ══════════════════════════════════════════════════
+
+model Conversation {
+  id            String    @id @default(uuid())
+  adminId       String
+  studentId     String
+  lastMessage   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  admin    User            @relation("AdminConversations", fields: [adminId], references: [id])
+  student  User            @relation("StudentConversations", fields: [studentId], references: [id])
+  messages DirectMessage[]
+
+  @@unique([adminId, studentId])
+}
+
+model DirectMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  messageType    String   @default("text") // "text" | "image" | "file"
+  fileUrl        String?
+  fileName       String?
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+// ══════════════════════════════════════════════════
+// ASIGNACIÓN DE CONTENIDO DEL PROFESOR A ESTUDIANTES
+// Permite al admin asignar TeacherContent a grados o estudiantes específicos
+// ══════════════════════════════════════════════════
+
+model ContentAssignment {
+  id             String    @id @default(uuid())
+  contentId      String
+  studentId      String
+  assignmentType String    @default("quiz")  // "quiz" | "tarea" | "evaluacion"
+  status         String    @default("assigned") // "assigned" | "completed" | "overdue"
+  deadline       DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  content TeacherContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  student User           @relation("StudentAssignments", fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// ══════════════════════════════════════════════════
+// PLAN DE ESTUDIO ADAPTATIVO — Progreso por Semana
+// ══════════════════════════════════════════════════
+
+model StudyPlanProgress {
+  id            String    @id @default(uuid())
+  userId        String
+  diagnosticId  String
+  weekNumber    Int       // 1..8
+  isUnlocked    Boolean   @default(false)
+  isCompleted   Boolean   @default(false)
+  exercisesDone Int       @default(0)
+  exercisesGoal Int       @default(3)  // umbral para desbloquear siguiente semana
+  topicsData    String?   // JSON: temas de esa semana (snapshot del diagnóstico)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user       User             @relation(fields: [userId], references: [id])
+  diagnostic DiagnosticResult @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, diagnosticId, weekNumber])
+}

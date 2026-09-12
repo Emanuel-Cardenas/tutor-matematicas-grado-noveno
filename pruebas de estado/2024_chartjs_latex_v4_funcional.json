@@ -1,0 +1,3581 @@
+{
+  "titulo": "2024",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.4-v4-funcional",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas se delimitan con LaTeX solo cuando aplica.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON; se normalizan para que todas las filas tengan la misma cantidad de columnas.",
+    "graficos": "Los gráficos están representados como configuraciones Chart.js; las figuras geométricas usan canvasShapesPlugin.",
+    "respuestas": "claveFuente proviene de la fuente cuando existe; si no hay clave queda como No indicada.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Los valores monetarios se dejan en texto normal para evitar conflictos con delimitadores matemáticos."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar diagramas, figuras geométricas, mapas, etiquetas y elementos auxiliares sobre un canvas de Chart.js.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n    function style(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      style(shape);\n      if (shape.type === \"text\") { ctx.fillStyle = shape.fill ?? \"#000000\"; ctx.fillText(shape.text, x(shape.x), y(shape.y)); }\n      if (shape.type === \"rectangle\") {\n        const left = x(shape.x), top = y(shape.y + shape.height), width = x(shape.x + shape.width) - x(shape.x), height = y(shape.y) - y(shape.y + shape.height);\n        ctx.beginPath(); ctx.rect(left, top, width, height); if (shape.fill && shape.fill !== \"transparent\") ctx.fill(); ctx.stroke();\n      }\n      if (shape.type === \"line\") { ctx.beginPath(); ctx.moveTo(x(shape.x1), y(shape.y1)); ctx.lineTo(x(shape.x2), y(shape.y2)); ctx.stroke(); }\n      if (shape.type === \"polygon\") { ctx.beginPath(); shape.points.forEach((p,i)=>{ const px=x(p[0]), py=y(p[1]); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }); ctx.closePath(); if(shape.fill && shape.fill !== \"transparent\") ctx.fill(); ctx.stroke(); }\n      if (shape.type === \"circle\") { ctx.beginPath(); ctx.arc(x(shape.x), y(shape.y), dx(shape.r), 0, Math.PI*2); if(shape.fill && shape.fill !== \"transparent\") ctx.fill(); ctx.stroke(); }\n      if (shape.type === \"arc\") { ctx.beginPath(); ctx.arc(x(shape.x), y(shape.y), dx(shape.r), shape.startAngle ?? 0, shape.endAngle ?? Math.PI*2, shape.anticlockwise ?? false); if(shape.closePath){ctx.lineTo(x(shape.x), y(shape.y)); ctx.closePath();} if(shape.fill && shape.fill !== \"transparent\") ctx.fill(); ctx.stroke(); }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La figura muestra el triángulo rectángulo \\(EFG\\)."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q1_triangulo_efg_v4",
+          "descripcion": "Triángulo rectángulo EFG en plano cartesiano.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.25,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 90
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "line",
+                      "x1": 8,
+                      "y1": 40,
+                      "x2": 92,
+                      "y2": 40,
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.4
+                    },
+                    {
+                      "type": "line",
+                      "x1": 50,
+                      "y1": 10,
+                      "x2": 50,
+                      "y2": 82,
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.4
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          22,
+                          72
+                        ],
+                        [
+                          22,
+                          20
+                        ],
+                        [
+                          78,
+                          20
+                        ]
+                      ],
+                      "fill": "rgba(59,130,246,0.18)",
+                      "stroke": "#F8FAFC",
+                      "lineWidth": 2.4
+                    },
+                    {
+                      "type": "line",
+                      "x1": 15,
+                      "y1": 12,
+                      "x2": 66,
+                      "y2": 82,
+                      "stroke": "#FBBF24",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 22,
+                      "y": 78,
+                      "text": "E",
+                      "fill": "#F8FAFC",
+                      "font": "bold 15px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 18,
+                      "y": 15,
+                      "text": "F",
+                      "fill": "#F8FAFC",
+                      "font": "bold 15px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 20,
+                      "text": "G",
+                      "fill": "#F8FAFC",
+                      "font": "bold 15px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 45,
+                      "y": 56,
+                      "text": "T",
+                      "fill": "#F8FAFC",
+                      "font": "bold 14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 56,
+                      "y": 49,
+                      "text": "90°",
+                      "fill": "#FBBF24",
+                      "font": "bold 13px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál segmento representa la hipotenusa del triángulo rectángulo \\(EFG\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(EG\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(FG\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(ET\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(FT\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La autonomía de un carro eléctrico hace referencia al número máximo de kilómetros que puede recorrer, empezando con la batería completamente cargada, hasta que se descarga. Para recargar la batería, hay que ir hasta una estación y conectar el carro a la corriente eléctrica, lo cual se puede hacer incluso si la batería no está completamente descargada. El carro de Ramiro tiene una autonomía de 140 km y tiene la batería cargada. Él quiere ir desde la ciudad \\(M\\) hasta la ciudad \\(P\\), como se muestra en el mapa."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q2_mapa_autonomia",
+          "descripcion": "Mapa de ruta entre M, N, P y estaciones de recarga.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.1,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 90
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 90
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 10,
+                      "x2": 45,
+                      "y2": 10,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 45,
+                      "y1": 10,
+                      "x2": 45,
+                      "y2": 58,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 10,
+                      "x2": 45,
+                      "y2": 58,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 45,
+                      "y1": 58,
+                      "x2": 63,
+                      "y2": 58,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 63,
+                      "y1": 58,
+                      "x2": 63,
+                      "y2": 82,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "line",
+                      "x1": 45,
+                      "y1": 58,
+                      "x2": 63,
+                      "y2": 82,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "circle",
+                      "x": 10,
+                      "y": 10,
+                      "r": 4,
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "circle",
+                      "x": 45,
+                      "y": 58,
+                      "r": 4,
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "circle",
+                      "x": 63,
+                      "y": 82,
+                      "r": 4,
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "circle",
+                      "x": 45,
+                      "y": 10,
+                      "r": 3,
+                      "fill": "#000000",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "circle",
+                      "x": 63,
+                      "y": 58,
+                      "r": 3,
+                      "fill": "#000000",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 10,
+                      "y": 10,
+                      "text": "M",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 45,
+                      "y": 58,
+                      "text": "N",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 63,
+                      "y": 82,
+                      "text": "P",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 45,
+                      "y": 4,
+                      "text": "Est. 1",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 63,
+                      "y": 52,
+                      "text": "Est. 2",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 27,
+                      "y": 6,
+                      "text": "60 km",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 39,
+                      "y": 34,
+                      "text": "80 km",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 54,
+                      "y": 63,
+                      "text": "30 km",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 78,
+                      "y": 45,
+                      "text": "120 km",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál de las siguientes alternativas debe escoger Ramiro, de tal forma que recorra la menor distancia sin que la batería de su auto se quede sin carga?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Ir directamente desde la ciudad \\(M\\) hasta la ciudad \\(P\\) sin pasar por ninguna estación de recarga."
+        },
+        {
+          "id": "B",
+          "texto": "Ir desde \\(M\\) hasta \\(N\\), luego hacer una recarga en la estación 2 y dirigirse desde allí hasta \\(P\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Ir desde \\(M\\) hasta la estación de recarga 1, luego ir hasta la ciudad \\(N\\) y desde allí hasta la estación 2 y, luego, hasta la ciudad \\(P\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Ir desde \\(M\\) hasta la estación de recarga 1, para luego ir hasta la ciudad \\(N\\) y desde allí dirigirse hasta \\(P\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En clase de Álgebra, el profesor graficó dos funciones: la función lineal \\[ y = 5x + 25, \\] y la función cuadrática \\[ y = 4x^2 - 20x + 50. \\] En la gráfica, indicó los dos puntos de corte de las dos funciones, tal como aparece en la imagen. Luego, el profesor pidió a sus estudiantes que hallaran algebraicamente las coordenadas de los dos puntos de corte. Para encontrar los dos valores de \\(x\\), un estudiante utilizó este procedimiento, pero cometió un error: Paso 1. Construyó la ecuación \\[ 5x + 25 = 4x^2 - 20x + 50, \\] igualando las ecuaciones de las dos funciones. Paso 2. Agrupó los términos semejantes. \\[ 5x + 20x + 25 - 50 = 4x^2 \\] Paso 3. Redujo los términos semejantes. \\[ 25x - 25 = 4x^2 \\] Paso 4. Calculó la raíz cuadrada a cada miembro de la ecuación. \\[ \\sqrt25x - 25 = \\sqrt4x^2 \\] \\[ 5x - 5 = 2x \\] Paso 5. Resolvió la ecuación lineal obtenida en el paso 4. \\[ 5x - 2x = 5 \\] \\[ 3x = 5 \\] \\[ x = \\frac53 \\]"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q3_funciones_interseccion",
+          "descripcion": "Funciones lineal y cuadrática con puntos de corte.",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                0.0,
+                0.1,
+                0.2,
+                0.3,
+                0.4,
+                0.5,
+                0.6,
+                0.7,
+                0.8,
+                0.9,
+                1.0,
+                1.1,
+                1.2,
+                1.3,
+                1.4,
+                1.5,
+                1.6,
+                1.7,
+                1.8,
+                1.9,
+                2.0,
+                2.1,
+                2.2,
+                2.3,
+                2.4,
+                2.5,
+                2.6,
+                2.7,
+                2.8,
+                2.9,
+                3.0,
+                3.1,
+                3.2,
+                3.3,
+                3.4,
+                3.5,
+                3.6,
+                3.7,
+                3.8,
+                3.9,
+                4.0,
+                4.1,
+                4.2,
+                4.3,
+                4.4,
+                4.5,
+                4.6,
+                4.7,
+                4.8,
+                4.9,
+                5.0,
+                5.1,
+                5.2,
+                5.3,
+                5.4,
+                5.5,
+                5.6,
+                5.7,
+                5.8,
+                5.9,
+                6.0,
+                6.1,
+                6.2
+              ],
+              "datasets": [
+                {
+                  "label": "y = 5x + 25",
+                  "data": [
+                    25.0,
+                    25.5,
+                    26.0,
+                    26.5,
+                    27.0,
+                    27.5,
+                    28.0,
+                    28.5,
+                    29.0,
+                    29.5,
+                    30.0,
+                    30.5,
+                    31.0,
+                    31.5,
+                    32.0,
+                    32.5,
+                    33.0,
+                    33.5,
+                    34.0,
+                    34.5,
+                    35.0,
+                    35.5,
+                    36.0,
+                    36.5,
+                    37.0,
+                    37.5,
+                    38.0,
+                    38.5,
+                    39.0,
+                    39.5,
+                    40.0,
+                    40.5,
+                    41.0,
+                    41.5,
+                    42.0,
+                    42.5,
+                    43.0,
+                    43.5,
+                    44.0,
+                    44.5,
+                    45.0,
+                    45.5,
+                    46.0,
+                    46.5,
+                    47.0,
+                    47.5,
+                    48.0,
+                    48.5,
+                    49.0,
+                    49.5,
+                    50.0,
+                    50.5,
+                    51.0,
+                    51.5,
+                    52.0,
+                    52.5,
+                    53.0,
+                    53.5,
+                    54.0,
+                    54.5,
+                    55.0,
+                    55.5,
+                    56.0
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "y = 4x² - 20x + 50",
+                  "data": [
+                    50.0,
+                    48.04,
+                    46.16,
+                    44.36,
+                    42.64,
+                    41.0,
+                    39.44,
+                    37.96,
+                    36.56,
+                    35.24,
+                    34.0,
+                    32.84,
+                    31.759999999999998,
+                    30.76,
+                    29.84,
+                    29.0,
+                    28.240000000000002,
+                    27.56,
+                    26.96,
+                    26.439999999999998,
+                    26.0,
+                    25.64,
+                    25.360000000000003,
+                    25.159999999999997,
+                    25.04,
+                    25.0,
+                    25.040000000000003,
+                    25.160000000000004,
+                    25.359999999999996,
+                    25.64,
+                    26.0,
+                    26.440000000000005,
+                    26.960000000000008,
+                    27.559999999999995,
+                    28.239999999999995,
+                    29.0,
+                    29.840000000000003,
+                    30.760000000000005,
+                    31.759999999999998,
+                    32.839999999999996,
+                    34.0,
+                    35.239999999999995,
+                    36.56,
+                    37.959999999999994,
+                    39.44000000000001,
+                    41.0,
+                    42.639999999999986,
+                    44.360000000000014,
+                    46.16,
+                    48.04000000000002,
+                    50.0,
+                    52.03999999999999,
+                    54.16000000000001,
+                    56.36,
+                    58.640000000000015,
+                    61.0,
+                    63.43999999999998,
+                    65.96000000000001,
+                    68.56,
+                    71.24000000000001,
+                    74.0,
+                    76.83999999999997,
+                    79.76000000000002
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 0,
+                  "fill": false,
+                  "tension": 0
+                },
+                {
+                  "label": "Puntos de corte",
+                  "data": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                  ],
+                  "borderWidth": 0,
+                  "pointRadius": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.55,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "top"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "x"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "y"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿En cuál paso se cometió el error?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el paso 1, porque la primera ecuación corresponde a una función de grado uno y la segunda a una función de grado dos, y por eso no se pueden igualar."
+        },
+        {
+          "id": "B",
+          "texto": "En el paso 2, porque en un lado de la ecuación deben quedar los términos con la incógnita y en el otro los términos numéricos."
+        },
+        {
+          "id": "C",
+          "texto": "En el paso 4, porque la raíz cuadrada de una resta no es igual a la raíz cuadrada de cada uno de sus términos."
+        },
+        {
+          "id": "D",
+          "texto": "En el paso 5, porque no es posible que la solución de una ecuación lineal sea una fracción."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Armando tiene 25 chocolates en una caja, y cada chocolate tiene un relleno de 4 posibles: fresa, mora, cereza y piña. De los 25 chocolates de la caja, Armando sabe que 8 tienen relleno de mora y 5 tienen relleno de piña. Si una persona toma al azar un chocolate de la caja,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál de las siguientes probabilidades se puede calcular?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La probabilidad de que el chocolate tomado no tenga relleno de fresa."
+        },
+        {
+          "id": "B",
+          "texto": "La probabilidad de que el chocolate tomado tenga relleno de fresa o relleno de mora."
+        },
+        {
+          "id": "C",
+          "texto": "La probabilidad de que el chocolate tomado no tenga relleno de piña."
+        },
+        {
+          "id": "D",
+          "texto": "La probabilidad de que el chocolate tomado tenga relleno de cereza o relleno de piña."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra la información que ofrece una empresa sobre diferentes productos."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Información de productos",
+          "columnas": [
+            "Producto",
+            "Precio sin impuesto (COP)",
+            "Impuesto (COP)",
+            "Descuento sobre el precio con impuesto (COP)",
+            "Precio final (COP)"
+          ],
+          "filas": [
+            [
+              "W",
+              "40.000",
+              "6.000",
+              "9.000",
+              "37.000"
+            ],
+            [
+              "X",
+              "55.000",
+              "8.000",
+              "12.000",
+              "51.000"
+            ],
+            [
+              "Y",
+              "72.000",
+              "11.000",
+              "16.000",
+              "67.000"
+            ],
+            [
+              "Z",
+              "110.000",
+              "20.000",
+              "25.000",
+              "105.000"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cuál de las siguientes expresiones permite hallar el precio final?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Precio final = Precio sin impuesto \\(-\\) Impuesto \\(-\\) Descuento"
+        },
+        {
+          "id": "B",
+          "texto": "Precio final = Precio sin impuesto \\(-\\) Impuesto \\(+\\) Descuento"
+        },
+        {
+          "id": "C",
+          "texto": "Precio final = Precio sin impuesto \\(+\\) Impuesto \\(+\\) Descuento"
+        },
+        {
+          "id": "D",
+          "texto": "Precio final = Precio sin impuesto \\(+\\) Impuesto \\(-\\) Descuento"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una clase de Matemáticas, el profesor les propone a sus alumnos el siguiente algoritmo: Paso 1. Escoger un número positivo. Paso 2. Tomar la raíz cuadrada del número escogido en el paso 1. Paso 3. Multiplicar por 2 el número obtenido en el paso 2. Paso 4. Elevar al cuadrado el número obtenido en el paso 3. Si un estudiante escogió el número 9 en el primer paso,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál será el resultado obtenido al final del algoritmo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "36"
+        },
+        {
+          "id": "B",
+          "texto": "18"
+        },
+        {
+          "id": "C",
+          "texto": "9"
+        },
+        {
+          "id": "D",
+          "texto": "3"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un juego de computador se muestra un número y el jugador debe escribir el cuadrado del número mostrado. Si en la pantalla aparece el número que se muestra en la figura,"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q8_pantalla_numero_v4",
+          "descripcion": "Pantalla de computador con el número 8.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.3,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 90
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "rectangle",
+                      "x": 25,
+                      "y": 35,
+                      "width": 50,
+                      "height": 35,
+                      "fill": "rgba(30,41,59,0.95)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "rectangle",
+                      "x": 20,
+                      "y": 25,
+                      "width": 60,
+                      "height": 6,
+                      "fill": "rgba(148,163,184,0.45)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 53,
+                      "text": "8",
+                      "fill": "#F8FAFC",
+                      "font": "bold 36px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿cuál es el número que el jugador debe escribir?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "4"
+        },
+        {
+          "id": "B",
+          "texto": "16"
+        },
+        {
+          "id": "C",
+          "texto": "32"
+        },
+        {
+          "id": "D",
+          "texto": "64"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una empresa se debe comprar regalos para todos los empleados de las áreas de producción, administración y ventas. La distribución de empleados por área se muestra en la gráfica. El jefe de personal decide comprar los regalos de la siguiente manera: la mitad para producción, la cuarta parte para ventas y el resto para administración."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q9_empleados_area",
+          "descripcion": "Distribución de empleados por área",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "pie",
+            "data": {
+              "labels": [
+                "Producción",
+                "Administración",
+                "Ventas"
+              ],
+              "datasets": [
+                {
+                  "label": "Valor",
+                  "data": [
+                    60,
+                    30,
+                    10
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.3,
+              "plugins": {
+                "legend": {
+                  "display": true,
+                  "position": "bottom"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cumple esta decisión con el criterio de dar regalos a todos los empleados de las tres áreas?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque a mayor cantidad de empleados en un área, más regalos hay."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque hay un aumento proporcional en la cantidad de regalos comprados para cada área."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque la cantidad de regalos debería mantener la proporción que tiene la distribución de los empleados."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque se debió comprar proporciones iguales para cada área."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona contrató un plan de salud durante un año, por el que debe pagar $200.000 cada mes y, además, $15.000 por cada servicio que solicite."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál expresión representa el total de dinero que debe pagar la persona por el plan de salud durante el año?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\((12 × 200.000) + (15.000 × \\textnúmero de servicios solicitados durante el año)\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(12 × (200.000 + 15.000 × \\textnúmero de servicios solicitados durante un mes)\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(200.000 + (15.000 × \\textnúmero de servicios solicitados durante el año)\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(200.000 + 12 × (15.000 × \\textnúmero de servicios solicitados durante un mes)\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para su clase de Educación Física, Gabriela mide la longitud del pie y la altura de 8 de sus compañeros con el objetivo de establecer si hay alguna relación entre estas dos variables, y registra los datos en una tabla. De acuerdo con la información anterior, Gabriela afirma que, a mayor longitud del pie, mayor es la altura."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 11",
+          "columnas": [
+            "Nombre",
+            "Luciana",
+            "Mateo",
+            "Emilio",
+            "Pila",
+            "Salomé",
+            "Sebastián",
+            "Samuel",
+            "Pedro"
+          ],
+          "filas": [
+            [
+              "Longitud del pie (cm)",
+              "33,4",
+              "33,8",
+              "34",
+              "34,8",
+              "35,2",
+              "35,7",
+              "36",
+              "36,2"
+            ],
+            [
+              "Altura (cm)",
+              "151",
+              "152",
+              "153",
+              "154",
+              "155",
+              "156",
+              "157",
+              "158"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Es correcta la afirmación hecha por Gabriela?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque el tamaño del pie aumenta poco en relación con el aumento de la altura."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque mientras el tamaño del pie aumenta, la altura también aumenta."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque aunque el tamaño del pie aumenta, la altura aumenta de distinta forma."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque mientras el tamaño del pie aumenta, la altura se mantiene constante."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de construcción adquirió un terreno con medidas de 7x metros de ancho y 10x metros de largo, con el propósito de crear cuatro zonas de recreación divididas por senderos peatonales. El gerente calcula el área de los senderos como el área total del terreno menos solo dos zonas recreativas: (10x)(7x) − [(3x)(4x) + (2x)(5x)]."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q12_terreno_senderos_v4",
+          "descripcion": "Terreno con senderos peatonales y zonas recreativas.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.45,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 0,
+                  "max": 68
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "rectangle",
+                      "x": 10,
+                      "y": 10,
+                      "width": 70,
+                      "height": 49,
+                      "fill": "rgba(34,197,94,0.16)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "rectangle",
+                      "x": 31,
+                      "y": 10,
+                      "width": 7,
+                      "height": 49,
+                      "fill": "rgba(251,191,36,0.45)",
+                      "stroke": "#FBBF24",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "rectangle",
+                      "x": 10,
+                      "y": 31,
+                      "width": 70,
+                      "height": 7,
+                      "fill": "rgba(251,191,36,0.45)",
+                      "stroke": "#FBBF24",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 20,
+                      "text": "Zona 1",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 60,
+                      "y": 52,
+                      "text": "Zona 2",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 52,
+                      "text": "Zona 3",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 60,
+                      "y": 20,
+                      "text": "Zona 4",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 20,
+                      "y": 3,
+                      "text": "3x",
+                      "fill": "#FBBF24",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 35,
+                      "y": 3,
+                      "text": "x",
+                      "fill": "#FBBF24",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 92,
+                      "y": 50,
+                      "text": "2x",
+                      "fill": "#FBBF24",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 92,
+                      "y": 35,
+                      "text": "x",
+                      "fill": "#FBBF24",
+                      "font": "14px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Por qué es incorrecto el procedimiento presentado por el gerente del proyecto?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Porque está sumando la expresión \\((2x)(5x)\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Porque falta restar el área de las zonas 3 y 4."
+        },
+        {
+          "id": "C",
+          "texto": "Porque debe multiplicar por 2 la expresión contenida en paréntesis angulares."
+        },
+        {
+          "id": "D",
+          "texto": "Porque la letra \\(x\\) representa el ancho del sendero y, por tanto, su área es \\(x^2\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la tabla, se encuentra la información sobre el porcentaje de acierto en cada una de las 5 pruebas realizadas durante un semestre por Roberto, donde cada prueba tiene el mismo peso en la calificación final. Con la información de la tabla,"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 15",
+          "columnas": [
+            "Nombre",
+            "Prueba 1",
+            "Prueba 2",
+            "Prueba 3",
+            "Prueba 4",
+            "Prueba 5"
+          ],
+          "filas": [
+            [
+              "Roberto",
+              "60 %",
+              "58 %",
+              "75 %",
+              "80 %",
+              "92 %"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cuál de los siguientes valores es posible encontrar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad de aciertos en cada una de las pruebas."
+        },
+        {
+          "id": "B",
+          "texto": "El peso de las preguntas en cada una de las pruebas."
+        },
+        {
+          "id": "C",
+          "texto": "El promedio del porcentaje de acierto en las pruebas."
+        },
+        {
+          "id": "D",
+          "texto": "La calificación obtenida al finalizar todas las pruebas."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "A un estudiante se le pide que rote \\(90°\\) el triángulo de la figura 1, en dirección contraria al movimiento de las manecillas del reloj y con centro en el origen. El estudiante obtiene como resultado la figura 2. Este resultado es incorrecto."
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q16_rotacion_v4",
+          "descripcion": "Triángulo antes y después de una rotación propuesta.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.8,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 10,
+                  "max": 75
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "circle",
+                      "x": 25,
+                      "y": 45,
+                      "r": 18,
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "line",
+                      "x1": 5,
+                      "y1": 45,
+                      "x2": 45,
+                      "y2": 45,
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "line",
+                      "x1": 25,
+                      "y1": 25,
+                      "x2": 25,
+                      "y2": 65,
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          25,
+                          45
+                        ],
+                        [
+                          38,
+                          45
+                        ],
+                        [
+                          38,
+                          50
+                        ]
+                      ],
+                      "fill": "rgba(59,130,246,0.24)",
+                      "stroke": "#F8FAFC",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 25,
+                      "y": 18,
+                      "text": "Figura 1",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "circle",
+                      "x": 75,
+                      "y": 45,
+                      "r": 18,
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "line",
+                      "x1": 55,
+                      "y1": 45,
+                      "x2": 95,
+                      "y2": 45,
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "line",
+                      "x1": 75,
+                      "y1": 25,
+                      "x2": 75,
+                      "y2": 65,
+                      "stroke": "#94A3B8",
+                      "lineWidth": 1.5
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          75,
+                          45
+                        ],
+                        [
+                          75,
+                          58
+                        ],
+                        [
+                          80,
+                          58
+                        ]
+                      ],
+                      "fill": "rgba(239,68,68,0.24)",
+                      "stroke": "#F8FAFC",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 75,
+                      "y": 18,
+                      "text": "Figura 2",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Por qué?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Porque el triángulo no debería apuntar hacia abajo."
+        },
+        {
+          "id": "B",
+          "texto": "Porque el triángulo no debería apuntar hacia la derecha."
+        },
+        {
+          "id": "C",
+          "texto": "Porque la rotación realizada fue de menos de \\(90°\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Porque la rotación se hizo en la dirección equivocada."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra la relación entre la altura y el tiempo de un esquiador que se desliza por una montaña de nieve. De acuerdo con la gráfica,"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q17_altura_esquiador",
+          "descripcion": "Altura del esquiador respecto al tiempo",
+          "requires": [
+            "Chart.js"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "0",
+                "28"
+              ],
+              "datasets": [
+                {
+                  "label": "Altura",
+                  "data": [
+                    14,
+                    0
+                  ],
+                  "borderWidth": 2,
+                  "pointRadius": 3,
+                  "fill": false,
+                  "tension": 0
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.55,
+              "plugins": {
+                "legend": {
+                  "display": false,
+                  "position": "top"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Tiempo (segundos)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Altura (metros)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿cuál es la altura del esquiador a los 12 segundos?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "4 metros."
+        },
+        {
+          "id": "B",
+          "texto": "8 metros."
+        },
+        {
+          "id": "C",
+          "texto": "12 metros."
+        },
+        {
+          "id": "D",
+          "texto": "16 metros."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una reserva ambiental tendrá a su cargo nuevos animales; por tanto, se deben crear hábitats adecuados para cada especie. Para esto, el encargado de la reserva cuenta con la siguiente información."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Animales y capacidad de hábitat",
+          "columnas": [
+            "Dato",
+            "Guacamayas",
+            "Jaguares",
+            "Chigüiros",
+            "Monos tití"
+          ],
+          "filas": [
+            [
+              "N.° de animales por especie",
+              "50",
+              "2",
+              "28",
+              "20"
+            ],
+            [
+              "N.° de machos",
+              "22",
+              "1",
+              "12",
+              "10"
+            ],
+            [
+              "N.° de hembras",
+              "28",
+              "1",
+              "16",
+              "10"
+            ],
+            [
+              "N.° máximo de animales por hábitat",
+              "30",
+              "1",
+              "15",
+              "10"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿qué información es necesario tener en cuenta?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El número de animales por especie y el número de hembras."
+        },
+        {
+          "id": "B",
+          "texto": "La cantidad de especies, el número de animales por especie y el número máximo de animales por hábitat."
+        },
+        {
+          "id": "C",
+          "texto": "El número de machos de cada especie y el número de hembras."
+        },
+        {
+          "id": "D",
+          "texto": "El número máximo de animales por hábitat, el número de machos y la cantidad de especies."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para remodelar el suelo de la recepción de una oficina con dimensiones 360 cm de ancho y 5 m de largo, se planea utilizar baldosas de 30 cm \\(×\\) 40 cm. Con el propósito de determinar la cantidad exacta de baldosas que se requieren para remodelar el suelo, uno de los diseñadores de interiores propuso el siguiente procedimiento, pero cometió un error: Paso 1. Calcular el área del suelo de la recepción multiplicando \\(360 × 5 = 1.800\\) Paso 2. Calcular el área de una de las baldosas multiplicando \\(30 × 40 = 1.200\\) Paso 3. Dividir el área del suelo de la recepción entre el área de una de las baldosas: \\[ \\frac1.8001.200=\\frac32 \\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿En cuál paso del procedimiento el diseñador cometió el error?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "En el paso 2, porque se multiplicaron cantidades con igual unidad de medida."
+        },
+        {
+          "id": "B",
+          "texto": "En el paso 1, porque se debe dividir la medida del ancho del suelo de la recepción entre la medida del ancho de la baldosa."
+        },
+        {
+          "id": "C",
+          "texto": "En el paso 1, porque se multiplicaron cantidades expresadas en diferentes unidades de medida."
+        },
+        {
+          "id": "D",
+          "texto": "En el paso 2, porque se debe dividir la medida del largo del suelo de la recepción entre la medida del largo de la baldosa."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una librería se venden libros de aventura y de romance. Una persona compró 7 libros de aventura y 2 libros de romance, y dicha compra tuvo un costo de $34.000. Como se sabe que hay un valor fijo para todos los libros de aventura y otro para todos los libros de romance, el pago total puede representarse como: $34.000 = 7 × precio de libros de aventura + 2 × precio de libros de romance."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes opciones corresponde a un posible precio para cada tipo de libro?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Aventura: $3.000. Romance: $4.000."
+        },
+        {
+          "id": "B",
+          "texto": "Romance: $300. Aventura: $400."
+        },
+        {
+          "id": "C",
+          "texto": "Romance: $400. Aventura: $300."
+        },
+        {
+          "id": "D",
+          "texto": "Aventura: $4.000. Romance: $3.000."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Se realizó un experimento para calcular el efecto de tres tipos de fertilizantes W, X y Y en la altura de las plantas de un cultivo de maíz. El experimento duró 90 días y se registraron en la tabla las alturas a los 15, 30, 45, 60 y 90 días. Una persona hace tres afirmaciones sobre los resultados del experimento."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Altura de plantas de maíz",
+          "columnas": [
+            "Tipo de cultivo",
+            "15 días",
+            "30 días",
+            "45 días",
+            "60 días",
+            "90 días"
+          ],
+          "filas": [
+            [
+              "Maíz tratado con W",
+              "49 cm",
+              "88 cm",
+              "149 cm",
+              "261 cm",
+              "269 cm"
+            ],
+            [
+              "Maíz tratado con X",
+              "64 cm",
+              "89 cm",
+              "159 cm",
+              "258 cm",
+              "286 cm"
+            ],
+            [
+              "Maíz tratado con Y",
+              "63 cm",
+              "93 cm",
+              "171 cm",
+              "269 cm",
+              "276 cm"
+            ]
+          ]
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Afirmaciones sobre el experimento",
+          "columnas": [
+            "Afirmación",
+            "Texto"
+          ],
+          "filas": [
+            [
+              "1",
+              "El maíz tratado con W tiene la menor altura a los 60 días."
+            ],
+            [
+              "2",
+              "El maíz tratado con X tiene la mayor altura a los 90 días."
+            ],
+            [
+              "3",
+              "A los 15 días la mayor altura es la del maíz tratado con Y."
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cuál o cuáles de las afirmaciones de la persona son falsas?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solo la 2."
+        },
+        {
+          "id": "B",
+          "texto": "Solo la 3."
+        },
+        {
+          "id": "C",
+          "texto": "La 1 y la 3."
+        },
+        {
+          "id": "D",
+          "texto": "La 1 y la 2."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La industria farmacéutica veterinaria determina la cantidad de medicamento adecuada para un perro según su peso \\(p\\), en kilogramos. La regla es: si \\(p \\leq 8\\), recibe 20 mg; si \\(8 < p < 40\\), recibe \\(p+20\\) mg; si \\(p \\geq 40\\), recibe \\(2p\\) mg. En una jornada de vacunación, ningún perro supera los 8 kilogramos de peso."
+      ],
+      "materiales": [],
+      "pregunta": "¿qué información se requiere para determinar la cantidad de medicamento total que se les suministró a los perros en la jornada de vacunación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La cantidad de perros que pesan exactamente 8 kilogramos."
+        },
+        {
+          "id": "B",
+          "texto": "La cantidad de perros que pesan menos de 8 kilogramos."
+        },
+        {
+          "id": "C",
+          "texto": "La cantidad de perros que pesan 8 kilogramos o más."
+        },
+        {
+          "id": "D",
+          "texto": "La cantidad de perros que pesan 8 kilogramos o menos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para la construcción de una lámina de acero rectangular, para el soporte de un techo de una casa, el arquitecto exige que se garanticen los siguientes aspectos: El ancho más el largo de la lámina deben medir al menos 6 metros. El largo de la lámina debe medir al menos 4 metros. El área de la lámina debe tener máximo 36 metros cuadrados de área. El ancho de la lámina debe medir al menos 2 metros. Una de las anteriores exigencias se cumple si se satisfacen las otras; por lo tanto,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál de las 4 exigencias NO es necesario verificar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La 1, porque se puede verificar de los aspectos 2 y 4."
+        },
+        {
+          "id": "B",
+          "texto": "La 2, porque se puede verificar de los aspectos 1 y 4."
+        },
+        {
+          "id": "C",
+          "texto": "La 3, porque se puede verificar del aspecto 1."
+        },
+        {
+          "id": "D",
+          "texto": "La 4, porque se puede verificar del aspecto 2."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para saber la cantidad de códigos de 4 cifras, donde los dígitos se pueden repetir, que pueden usarse para identificar a los estudiantes de un colegio, se propone el siguiente procedimiento: Paso 1. Determinar la cantidad de números que hay en el conjunto de dígitos seleccionado. Paso 2. Elevar a la 4 el resultado del paso 1. Para un colegio de 600 estudiantes, se elige el conjunto de los dígitos \\(\\1,2,3,4,5\\\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuántos códigos se pueden obtener con este conjunto usando el procedimiento anterior?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "5"
+        },
+        {
+          "id": "B",
+          "texto": "75"
+        },
+        {
+          "id": "C",
+          "texto": "625"
+        },
+        {
+          "id": "D",
+          "texto": "3.125"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Para determinar los cortes con el eje \\(x\\) de la gráfica de la función \\(f(x)=x^2-169\\), se pueden emplear varios métodos."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes métodos NO permite determinar los cortes con el eje \\(x\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Factorizar \\(x^2-169=(x-13)(x+13)\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Utilizar la fórmula cuadrática \\[ x=\\frac\\pm\\sqrt4×1692. \\]"
+        },
+        {
+          "id": "C",
+          "texto": "Completar cuadrados \\[ x^2-169+26x-26x=(x-13)^2. \\]"
+        },
+        {
+          "id": "D",
+          "texto": "Encontrar dos números tales que su cuadrado sea 169 o resolver \\[ x=\\pm\\sqrt169. \\]"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La figura muestra un recipiente cilíndrico de 10 cm de altura y 5 cm de diámetro en su base, en el que se depositaron 50 ml de agua y un volumen desconocido de aceite. Para calcular el volumen de aceite depositado, se efectúa el siguiente procedimiento: Paso 1. Se calcula el área del círculo que tiene 5 cm de diámetro. Paso 2. El anterior resultado se multiplica por 10 cm. Paso 3. Al resultado del paso 2, se le resta 50 ml."
+      ],
+      "materiales": [],
+      "pregunta": "¿En qué paso hay un error?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Paso 1, porque el área del círculo se debe calcular con el radio de la base del cilindro."
+        },
+        {
+          "id": "B",
+          "texto": "Paso 1, porque la base del cilindro que forma el aceite es diferente a la del recipiente."
+        },
+        {
+          "id": "C",
+          "texto": "Paso 2, porque con esa altura se estaría calculando el volumen de todo el recipiente."
+        },
+        {
+          "id": "D",
+          "texto": "Paso 2, porque se estaría calculando el volumen que ocupa el agua."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un estudiante está ahorrando para un paseo que tiene un costo de $800.000; él empezó su ahorro en enero con $100.000, que sube el regalo y, al final de cada mes, está ahorrando cierta cantidad de dinero. La tabla resume el progreso del ahorro del estudiante durante los primeros cuatro meses."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 29",
+          "columnas": [
+            "Mes",
+            "Dinero"
+          ],
+          "filas": [
+            [
+              "ahorrado",
+              ""
+            ],
+            [
+              "al inicio",
+              ""
+            ],
+            [
+              "de mes",
+              "Dinero"
+            ],
+            [
+              "ahorrado",
+              ""
+            ],
+            [
+              "al finalizar",
+              ""
+            ],
+            [
+              "el mes",
+              "Dinero que"
+            ],
+            [
+              "hace falta",
+              ""
+            ],
+            [
+              "para completar",
+              ""
+            ],
+            [
+              "el ahorro",
+              ""
+            ],
+            [
+              "Enero",
+              "$100.000"
+            ],
+            [
+              "Febrero",
+              "$130.000"
+            ],
+            [
+              "Marzo",
+              "$160.000"
+            ],
+            [
+              "Abril",
+              "$190.000"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál es la tendencia del dinero ahorrado al finalizar cada mes?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Disminuye $30.000 cada mes."
+        },
+        {
+          "id": "B",
+          "texto": "Aumenta $300.000 cada mes."
+        },
+        {
+          "id": "C",
+          "texto": "Aumenta $30.000 cada mes."
+        },
+        {
+          "id": "D",
+          "texto": "Disminuye $100.000 cada mes."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La tabla muestra el registro que llevó un mecánico automotriz de las piezas que tuvieron que reemplazarse durante el mantenimiento de tres vehículos. De acuerdo con esta información,"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 30",
+          "columnas": [
+            "Vehículo",
+            "Número de piezas reemplazadas"
+          ],
+          "filas": [
+            [
+              "1",
+              "6"
+            ],
+            [
+              "2",
+              "5"
+            ],
+            [
+              "3",
+              "10"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cuál es el promedio del número de piezas reemplazadas de los tres vehículos?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "21"
+        },
+        {
+          "id": "B",
+          "texto": "7"
+        },
+        {
+          "id": "C",
+          "texto": "10"
+        },
+        {
+          "id": "D",
+          "texto": "6"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 31,
+      "numero": 31,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La figura muestra la distribución de los tipos de transporte que utilizan 160 personas para llegar al trabajo. Algunas personas usan únicamente un medio de transporte, otras dos, y otras tres. Si se necesita saber la cantidad total de personas que se transportan en bicicleta,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuáles son los datos que se deben sumar?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "5, 15, 20 y 25."
+        },
+        {
+          "id": "B",
+          "texto": "5 y 20."
+        },
+        {
+          "id": "C",
+          "texto": "25, 35 y 50."
+        },
+        {
+          "id": "D",
+          "texto": "5, 20, 25 y 50."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 32,
+      "numero": 32,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "El fundador de una empresa de procesadores identificó que el número de transistores de un procesador del tipo \\(X\\) se duplicó cada dos años. Si en el 2010 el procesador tipo \\(X\\) tenía 10.000 transistores,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuántos transistores tenía el procesador tipo \\(X\\) en el 2016?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "20.000 transistores."
+        },
+        {
+          "id": "B",
+          "texto": "40.000 transistores."
+        },
+        {
+          "id": "C",
+          "texto": "60.000 transistores."
+        },
+        {
+          "id": "D",
+          "texto": "80.000 transistores."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 33,
+      "numero": 33,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un jardín con forma cuadrada, de vértices \\(EFGH\\), tiene de lado \\(x+y\\). Otro cuadrado de vértices \\(PQRS\\) está inscrito en el cuadrado \\(EFGH\\), de tal manera que la distancia más cercana entre dos vértices consecutivos mide \\(x\\). Para encontrar una fórmula que corresponda al área de la región sombreada, el jardinero propuso los siguientes pasos: Paso 1. Escoger uno de los cuatro triángulos sombreados y multiplicar la medida de la altura por la medida de la base. Paso 2. Dividir entre 2 el resultado obtenido en el paso 1. Paso 3. Multiplicar por 4 el resultado obtenido en el paso 2. Paso 4. Sumar cuatro veces el resultado del paso 2. De los pasos propuestos,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál es redundante para el cálculo del área de la región sombreada?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El paso 4, porque, al sumar cuatro veces el resultado del paso 2, se obtiene el resultado del paso 3."
+        },
+        {
+          "id": "B",
+          "texto": "El paso 3, porque, al multiplicar por 4 el resultado del paso 2, se obtiene el mismo resultado obtenido en el paso 1."
+        },
+        {
+          "id": "C",
+          "texto": "El paso 2, porque, al dividir entre 2 el resultado del paso 1, se obtiene el mismo resultado del paso 3."
+        },
+        {
+          "id": "D",
+          "texto": "El paso 1, porque, al multiplicar la altura de uno de los triángulos por la base, se obtiene el área total de la figura."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 34,
+      "numero": 34,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Al entrar a un túnel, un carro que lleva una velocidad de \\(10\\ m/s\\), acelera a \\(3\\ m/s^2\\) durante 15 segundos, que es lo que dura recorriéndolo. La longitud del túnel se puede calcular mediante la siguiente fórmula: \\[ \\left(10\\fracms\\right)(15s) + \\frac12 \\left(3\\fracms^2\\right) (15s)^2 \\] Al ver la fórmula, una persona afirma que esta es equivalente a: \\[ 15s × \\left( 10\\fracms + \\frac12 \\left( 3\\fracms^2 \\right) \\right) \\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Es verdadera la afirmación de la persona?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque lo que hizo fue factorizar el tiempo que tarda en recorrer el túnel."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque omitió que hay unos 15 segundos elevados al cuadrado."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque el exponente 2, al que está elevado el tiempo, se puede cancelar."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque también se tiene que factorizar el fraccionario \\(\\frac12\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 35,
+      "numero": 35,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Arturo quiere calcular el tiempo que se necesita para descargar un archivo de internet que tiene un tamaño de 12,6 megabytes. Él sabe que en su computador la velocidad de descarga es de 300 kilobytes por segundo y que 1 megabyte equivale a 1.024 kilobytes."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes procedimientos NO permite calcular el tiempo necesario para descargar el archivo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Paso 1. Multiplicar 12,6 por 1.024.\\\\ Paso 2. Dividir el resultado del paso 1 entre 300."
+        },
+        {
+          "id": "B",
+          "texto": "Paso 1. Multiplicar 1.024 por 300.\\\\ Paso 2. Dividir el resultado del paso 1 entre 12,6."
+        },
+        {
+          "id": "C",
+          "texto": "Paso 1. Dividir 12,6 entre 300.\\\\ Paso 2. Multiplicar el resultado del paso 1 por 1.024."
+        },
+        {
+          "id": "D",
+          "texto": "Paso 1. Dividir 1.024 entre 300.\\\\ Paso 2. Multiplicar el resultado del paso 1 por 12,6."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 36,
+      "numero": 36,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona construyó una rampa, como se muestra en la figura, pero se necesita un refuerzo para evitar que esta se parta. Para esto, a dos metros del muro, se va a construir una columna que fortalezca la estructura."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de los siguientes procedimientos permite calcular la altura \\(h\\) que debe tener la columna?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Paso 1. Dividir 2 m entre 4 m, obteniendo 0,5.\\\\ Paso 2. Dividir 3 m entre el valor calculado en el paso 1."
+        },
+        {
+          "id": "B",
+          "texto": "Paso 1. Dividir 4 m entre 2 m, obteniendo 0,5.\\\\ Paso 2. Multiplicar 3 m por el valor calculado en el paso 1."
+        },
+        {
+          "id": "C",
+          "texto": "Paso 1. Dividir 4 m entre 2 m, obteniendo 2.\\\\ Paso 2. Dividir 3 m entre el valor calculado en el paso 1."
+        },
+        {
+          "id": "D",
+          "texto": "Paso 1. Dividir 2 m entre 4 m, obteniendo 2.\\\\ Paso 2. Multiplicar 3 m por el valor calculado en el paso 1."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 37,
+      "numero": 37,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En la gráfica se muestra la ubicación, en coordenadas polares, de cuatro aviones (\\(V\\), \\(W\\), \\(X\\), \\(Y\\)) respecto a la torre de control de un aeropuerto. Si las coordenadas polares de un punto son de la forma \\((r,\\theta)\\), donde \\(r\\) es la distancia al polo y \\(\\theta\\) es el ángulo respecto al eje polar,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál es el orden de los aviones, del que está más cerca al que está más lejos de la torre de control?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(W, V, Y, X\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(X, V, W, Y\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(V, Y, W, X\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(X, Y, V, W\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 38,
+      "numero": 38,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Kevin trabaja en una farmacia que entrega los medicamentos a domicilio. Los días viernes, Kevin tiene la posibilidad de salir tres horas antes de su trabajo, pero la condición es que debe repartir los pedidos que hagan falta por entregar y que estén ubicados en la ruta que toma hacia su casa. Por ejemplo, el último viernes que salió tuvo que entregar un total de cuatro pedidos, así: Para entregar el primer pedido, tuvo que avanzar 3 cuadras. Para entregar el segundo pedido, tuvo que avanzar el doble de cuadras de las que había hecho para entregar el primer pedido. Para llegar a la dirección del tercer pedido, tuvo que avanzar la mitad de cuadras que avanzó para entregar el pedido anterior. Para el último pedido, tuvo que regresarse 10 cuadras y, así, acabar su ruta de entregas. Después de terminar las entregas, solo tuvo que caminar una cuadra para llegar a su casa."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes operaciones permite obtener la distancia que hay desde la farmacia hasta la casa de Kevin?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(3+3+3-10+1\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(3+6+6+10\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(3+6+3-10+1\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(6+3+10-1\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 39,
+      "numero": 39,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La presión pleural se genera entre algunas paredes de los pulmones durante la respiración. Se midió la presión pleural de cuatro pacientes para determinar el orden en que deben recibir un tratamiento pulmonar. Para recibir el tratamiento, se deben ordenar de menor a mayor según su presión pleural."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Presión pleural de pacientes",
+          "columnas": [
+            "Paciente",
+            "Presión pleural (cmH₂O)"
+          ],
+          "filas": [
+            [
+              "Santiago",
+              "-7,6"
+            ],
+            [
+              "Ximena",
+              "-7,09"
+            ],
+            [
+              "Mariana",
+              "-7,62"
+            ],
+            [
+              "Orlando",
+              "-7,53"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál de las siguientes tablas indica el orden en que deben recibir el tratamiento los pacientes?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Primero Ximena; segundo Mariana; tercero Santiago; cuarto Orlando."
+        },
+        {
+          "id": "B",
+          "texto": "Primero Orlando; segundo Santiago; tercero Mariana; cuarto Ximena."
+        },
+        {
+          "id": "C",
+          "texto": "Primero Mariana; segundo Santiago; tercero Orlando; cuarto Ximena."
+        },
+        {
+          "id": "D",
+          "texto": "Primero Santiago; segundo Ximena; tercero Mariana; cuarto Orlando."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 40,
+      "numero": 40,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una pieza de papel de forma cuadrada tiene un lado igual a 2 cm."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál de las siguientes opciones NO es un método para encontrar el área de esta pieza?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Dividir el cuadrado en dos triángulos con 2 cm de base y 2 cm de altura."
+        },
+        {
+          "id": "B",
+          "texto": "Dividir el cuadrado en dos rectángulos con 1 cm de base y 2 cm de altura."
+        },
+        {
+          "id": "C",
+          "texto": "Dividir el cuadrado en 8 triángulos con 1 cm de base y 1 cm de altura."
+        },
+        {
+          "id": "D",
+          "texto": "Dividir el cuadrado en 10 triángulos con 2 cm de base y 1 cm de altura."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 41,
+      "numero": 41,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "El padre de Manuel tiene una cuenta de ahorros en el Banco M, donde le cobran $12.000 de cuota de manejo trimestral y $1.000 cada vez que retira dinero de la entidad. Manuel le sugiere a su padre que se cambie al Banco N, que no cobra cuota de manejo, pero en el que, cada vez que retira dinero, le descuentan un valor de $5.000. Si el padre de Manuel siempre retira dinero del banco dos veces al mes, al cabo de un año,"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q41_trayectorias",
+          "descripcion": "Tres trayectorias entre los puntos P y Q.",
+          "requires": [
+            "Chart.js",
+            "canvasShapesPlugin"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "aspectRatio": 1.8,
+              "scales": {
+                "x": {
+                  "display": false,
+                  "min": 0,
+                  "max": 100
+                },
+                "y": {
+                  "display": false,
+                  "min": 50,
+                  "max": 90
+                }
+              },
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "tooltip": {
+                  "enabled": false
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "text",
+                      "x": 18,
+                      "y": 80,
+                      "text": "Trayectoria 1",
+                      "font": "bold 12px Arial",
+                      "fill": "#F8FAFC"
+                    },
+                    {
+                      "type": "line",
+                      "x1": 10,
+                      "y1": 60,
+                      "x2": 30,
+                      "y2": 60,
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 8,
+                      "y": 60,
+                      "text": "P",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 32,
+                      "y": 60,
+                      "text": "Q",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 80,
+                      "text": "Trayectoria 2",
+                      "font": "bold 12px Arial",
+                      "fill": "#F8FAFC"
+                    },
+                    {
+                      "type": "polygon",
+                      "points": [
+                        [
+                          42,
+                          60
+                        ],
+                        [
+                          50,
+                          78
+                        ],
+                        [
+                          58,
+                          60
+                        ]
+                      ],
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 40,
+                      "y": 60,
+                      "text": "P",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 50,
+                      "y": 82,
+                      "text": "S",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 60,
+                      "y": 60,
+                      "text": "Q",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 82,
+                      "y": 80,
+                      "text": "Trayectoria 3",
+                      "font": "bold 12px Arial",
+                      "fill": "#F8FAFC"
+                    },
+                    {
+                      "type": "arc",
+                      "x": 82,
+                      "y": 60,
+                      "r": 10,
+                      "startAngle": 3.141592653589793,
+                      "endAngle": 6.283185307179586,
+                      "fill": "rgba(255,255,255,0)",
+                      "stroke": "#E5E7EB",
+                      "lineWidth": 2
+                    },
+                    {
+                      "type": "text",
+                      "x": 70,
+                      "y": 60,
+                      "text": "P",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    },
+                    {
+                      "type": "text",
+                      "x": 94,
+                      "y": 60,
+                      "text": "Q",
+                      "fill": "#F8FAFC",
+                      "font": "14px Arial"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿ahorraría al seguir el consejo de su hijo?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque en el Banco M le cobran cuota de manejo y en el N, no."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque debería pagar igual cantidad de dinero a ambos bancos cada año."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque teniendo en cuenta cada retiro, pagaría menos dinero si se cambiara al Banco N."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque, incluso pagando cuota de manejo, pagaría menos dinero si se quedara en el Banco M."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "D",
+        "claveValidada": "D",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 42,
+      "numero": 42,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En los últimos 100 años, las universidades de EE. UU. han dado a los estudiantes calificaciones cada vez más altas por trabajos de similares características. Por ejemplo, alguien que hace veinte años tuvo un promedio de 73 puntos sobre 100, con el mismo trabajo, hoy tendría 82 puntos sobre 100, puesto que cada 20 años las calificaciones suben un tercio de lo que les falta para ser iguales a 100; es decir, a 73 le faltan 27, y como de este último número, debe subir la tercera parte, por eso resulta 82. En general, si una persona tuvo hace veinte años un promedio inicial cualquiera de puntos sobre 100, entonces,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál sería su media en el día de hoy, también sobre 100?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Promedio actual \\(=\\) Promedio inicial \\(+\\) (Promedio inicial)\\(/3\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Promedio actual \\(= 100 -\\) (Promedio inicial)\\(/3\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Promedio actual \\(=\\) Promedio inicial \\(+\\) \\((100-\\) Promedio inicial\\()/3\\)."
+        },
+        {
+          "id": "D",
+          "texto": "Promedio actual \\(=\\) Promedio inicial \\(+ 100/3\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 43,
+      "numero": 43,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un torneo deportivo participan tres atletas que acumulan puntos durante cuatro intentos. El puntaje definitivo por atleta se obtiene al sumar los puntajes de los cuatro intentos. La información sobre los puntos obtenidos en cada intento por las atletas aparece en la tabla. Teniendo en cuenta el resultado definitivo,"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 43",
+          "columnas": [
+            "\\multicolumn4|c|Tabla de clasificación"
+          ],
+          "filas": [
+            [
+              "Intento"
+            ],
+            [
+              "Primero"
+            ],
+            [
+              "Segundo"
+            ],
+            [
+              "Tercero"
+            ],
+            [
+              "Cuarto"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cuál de las siguientes opciones ordena a las atletas de mayor a menor puntaje?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Andrea, Catalina, Mariana."
+        },
+        {
+          "id": "B",
+          "texto": "Catalina, Mariana, Andrea."
+        },
+        {
+          "id": "C",
+          "texto": "Catalina, Andrea, Mariana."
+        },
+        {
+          "id": "D",
+          "texto": "Mariana, Andrea, Catalina."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 44,
+      "numero": 44,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra el comportamiento de una función en el intervalo \\([1,5]\\). Gráfica Un estudiante asegura que la función es constante en el intervalo \\([1,5]\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Es verdadera esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque la función toma los mismos valores en los extremos del intervalo \\([1,5]\\)."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque la función es decreciente en el intervalo \\([2,3]\\) y creciente en \\([4,5]\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque el valor de la función en \\(x=2\\) es igual a los valores en \\(x=1\\) y \\(x=5\\)."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque la función es igual a cero solamente en el intervalo \\([3,4]\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 45,
+      "numero": 45,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Cuando se mide la tensión arterial de una persona, se debe medir la presión diastólica y la presión sistólica. La tabla muestra información sobre la tensión arterial de cuatro personas. Por otra parte, para calcular la desviación estándar de un conjunto de datos, se plantea el siguiente procedimiento: Paso 1. Calcular la varianza del conjunto de datos. Paso 2. Calcular la raíz cuadrada de la varianza obtenida en el paso 1. Teniendo en cuenta la información anterior,"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 45",
+          "columnas": [
+            "Persona",
+            "Presión diastólica (mmHg)",
+            "Presión sistólica (mmHg)",
+            "Nivel"
+          ],
+          "filas": [
+            [
+              "Persona 1",
+              "70",
+              "110",
+              "Normal"
+            ],
+            [
+              "Persona 2",
+              "80",
+              "125",
+              "Elevada"
+            ],
+            [
+              "Persona 3",
+              "90",
+              "136",
+              "Hipertensión I"
+            ],
+            [
+              "Persona 4",
+              "95",
+              "144",
+              "Hipertensión II"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿para cuáles variables de la tabla se puede aplicar este procedimiento?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Persona y nivel."
+        },
+        {
+          "id": "B",
+          "texto": "Persona, presión diastólica y presión sistólica."
+        },
+        {
+          "id": "C",
+          "texto": "Presión diastólica y presión sistólica."
+        },
+        {
+          "id": "D",
+          "texto": "Persona, presión diastólica, presión sistólica y nivel."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 46,
+      "numero": 46,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Álvaro y Jesús trabajan recolectando fruta. La Tabla 1 muestra la cantidad de kilogramos de fruta recolectada por Álvaro durante cinco días. La Tabla 2 muestra la cantidad de kilogramos de fruta recolectada por Jesús durante los mismos cinco días."
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 46",
+          "columnas": [
+            "Día",
+            "Kilogramos de fruta recolectada"
+          ],
+          "filas": [
+            [
+              "1",
+              "24"
+            ],
+            [
+              "2",
+              "30"
+            ],
+            [
+              "3",
+              "26"
+            ],
+            [
+              "4",
+              "20"
+            ],
+            [
+              "5",
+              "30"
+            ]
+          ]
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 46",
+          "columnas": [
+            "Día",
+            "Kilogramos de fruta recolectada"
+          ],
+          "filas": [
+            [
+              "1",
+              "20"
+            ],
+            [
+              "2",
+              "24"
+            ],
+            [
+              "3",
+              "26"
+            ],
+            [
+              "4",
+              "24"
+            ],
+            [
+              "5",
+              "30"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿cuál de las siguientes afirmaciones es verdadera?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La mediana de los kilogramos recolectados por Jesús es igual a la mediana de los kilogramos recolectados por Álvaro."
+        },
+        {
+          "id": "B",
+          "texto": "El promedio de los kilogramos recolectados por Álvaro es igual al promedio de los kilogramos recolectados por Jesús."
+        },
+        {
+          "id": "C",
+          "texto": "El rango de los kilogramos recolectados por Jesús es mayor que el rango de los kilogramos recolectados por Álvaro."
+        },
+        {
+          "id": "D",
+          "texto": "La moda de los kilogramos recolectados por Álvaro es mayor que la moda de los kilogramos recolectados por Jesús."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 48,
+      "numero": 48,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una fábrica de productos químicos se utiliza un ventilador grande y uno pequeño para eliminar humo y gases industriales. Los dos ventiladores encendidos, durante un día, consumen 5 kilovatios, de los cuales el 70 % es consumido por el ventilador grande, mientras que el 30 % es consumido por el ventilador pequeño."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el consumo, respectivamente, por día del ventilador grande y el ventilador pequeño?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "3,5 kilovatios y 1,5 kilovatios."
+        },
+        {
+          "id": "B",
+          "texto": "2,3 kilovatios y 0,4 kilovatios."
+        },
+        {
+          "id": "C",
+          "texto": "4,3 kilovatios y 0,7 kilovatios."
+        },
+        {
+          "id": "D",
+          "texto": "8,5 kilovatios y 6,5 kilovatios."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "A",
+        "claveValidada": "A",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 49,
+      "numero": 49,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En una heladería, cada vaso de helado cuesta $3.000. A cada vaso, se le pueden agregar acompañamientos por un precio de $1.000, cada uno. Teniendo en cuenta el número de acompañamientos que se le agreguen,"
+      ],
+      "materiales": [],
+      "pregunta": "¿cuál de las siguientes expresiones permite determinar correctamente el precio de un vaso de helado?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(1.000 + (1.000 × \\textnúmero de acompañamientos del helado)\\)."
+        },
+        {
+          "id": "B",
+          "texto": "\\(3.000 + (1.000 × \\textnúmero de acompañamientos del helado)\\)."
+        },
+        {
+          "id": "C",
+          "texto": "\\(1.000 + (3.000 × \\textnúmero de acompañamientos del helado)\\)."
+        },
+        {
+          "id": "D",
+          "texto": "\\(3.000 + (3.000 × \\textnúmero de acompañamientos del helado)\\)."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "B",
+        "claveValidada": "B",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    },
+    {
+      "id": 50,
+      "numero": 50,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La relación de Mosteller es una fórmula que se utiliza en medicina para calcular el área de la superficie corporal (ASC) de una persona. Si una persona tiene una estatura de 144 cm y su masa corporal es \\(w\\), medida en kilogramos, el valor nominal del ASC, medido en m\\(^2\\), se puede calcular por medio de la fórmula: \\[ ASC=\\sqrt\\frac144w3.600=\\frac\\sqrtw5 \\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el ASC de un paciente con estatura de 144 cm y con una masa corporal de 100 kilogramos?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\dfrac50\\ m^25\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\dfrac44\\ m^25\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\dfrac10\\ m^25\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\dfrac12\\ m^25\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": "C",
+        "claveValidada": "C",
+        "estado": "tomada_de_fuente",
+        "explicacion": "Clave tomada del comentario en el archivo fuente."
+      }
+    }
+  ],
+  "resumenRespuestas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 31,
+      "numero": 31,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 32,
+      "numero": 32,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 33,
+      "numero": 33,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 34,
+      "numero": 34,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 35,
+      "numero": 35,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 36,
+      "numero": 36,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 37,
+      "numero": 37,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 38,
+      "numero": 38,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 39,
+      "numero": 39,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 40,
+      "numero": 40,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 41,
+      "numero": 41,
+      "claveFuente": "D",
+      "claveValidada": "D",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 42,
+      "numero": 42,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 43,
+      "numero": 43,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 44,
+      "numero": 44,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 45,
+      "numero": 45,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 46,
+      "numero": 46,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 48,
+      "numero": 48,
+      "claveFuente": "A",
+      "claveValidada": "A",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 49,
+      "numero": 49,
+      "claveFuente": "B",
+      "claveValidada": "B",
+      "estado": "tomada_de_fuente"
+    },
+    {
+      "id": 50,
+      "numero": 50,
+      "claveFuente": "C",
+      "claveValidada": "C",
+      "estado": "tomada_de_fuente"
+    }
+  ],
+  "observacionesValidacion": [
+    {
+      "detalle": "Se identificaron 44 preguntas principales en el archivo fuente."
+    },
+    {
+      "detalle": "Se corrigieron figuras que se veían negras agregando rellenos transparentes o semitransparentes y trazos visibles."
+    },
+    {
+      "detalle": "Se reemplazaron tablas problemáticas por tablas limpias y rectangulares."
+    },
+    {
+      "detalle": "Se eliminaron residuos visibles de LaTeX como makecell, renewcommand, begin, end, draw, node y hline."
+    },
+    {
+      "detalle": "Se mantuvieron fórmulas matemáticas en LaTeX solo cuando aportan al contenido."
+    }
+  ]
+}

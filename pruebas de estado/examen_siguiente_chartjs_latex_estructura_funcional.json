@@ -1,0 +1,2920 @@
+{
+  "titulo": "EXAMEN SIGUIENTE",
+  "idioma": "es",
+  "formato": "JSON con textos en plano, fórmulas en LaTeX y gráficos en Chart.js",
+  "version": "1.0",
+  "convenciones": {
+    "id": "Cada pregunta tiene un id numérico entero único.",
+    "numero": "Número original visible de la pregunta.",
+    "textos": "El texto general se mantiene en texto plano. Las expresiones matemáticas dentro de textos, preguntas, opciones, tablas y explicaciones se delimitan con LaTeX.",
+    "tablas": "Las tablas están representadas como columnas y filas en JSON; los valores matemáticos o unidades dentro de las tablas se escriben en LaTeX cuando aplica.",
+    "graficos": "Los gráficos y figuras están representados como configuraciones de Chart.js. Las figuras que Chart.js no dibuja de forma nativa usan el plugin canvasShapesPlugin incluido en este mismo JSON.",
+    "respuestas": "claveFuente proviene de la clave comentada en el archivo original; claveValidada es la clave revisada matemáticamente cuando aplica.",
+    "latex": "Las fórmulas en línea usan \\(...\\). Las fórmulas destacadas usan \\[...\\]. Para moneda dentro de LaTeX se usa \\$."
+  },
+  "chartJsPlugins": [
+    {
+      "id": "canvasShapesPlugin",
+      "descripcion": "Plugin opcional para dibujar diagramas de Venn, figuras geométricas, etiquetas y líneas de dimensión sobre un canvas de Chart.js.",
+      "registro": "Chart.register(canvasShapesPlugin);",
+      "javascript": "const canvasShapesPlugin = {\n  id: \"canvasShapesPlugin\",\n  afterDraw(chart, args, pluginOptions) {\n    if (!pluginOptions || !Array.isArray(pluginOptions.shapes)) return;\n    const { ctx, scales } = chart;\n    const xScale = scales.x;\n    const yScale = scales.y;\n    const x = (value) => xScale.getPixelForValue(value);\n    const y = (value) => yScale.getPixelForValue(value);\n    const dx = (value) => Math.abs(x(value) - x(0));\n    const dy = (value) => Math.abs(y(value) - y(0));\n\n    function applyStyle(shape) {\n      ctx.lineWidth = shape.lineWidth ?? 1.5;\n      ctx.strokeStyle = shape.stroke ?? \"#000000\";\n      ctx.fillStyle = shape.fill ?? \"rgba(0,0,0,0)\";\n      ctx.font = shape.font ?? \"13px Arial\";\n      ctx.textAlign = shape.textAlign ?? \"center\";\n      ctx.textBaseline = shape.textBaseline ?? \"middle\";\n    }\n\n    function drawArrowHead(x1, y1, x2, y2, size = 6) {\n      const angle = Math.atan2(y2 - y1, x2 - x1);\n      ctx.beginPath();\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));\n      ctx.moveTo(x2, y2);\n      ctx.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));\n      ctx.stroke();\n    }\n\n    ctx.save();\n    for (const shape of pluginOptions.shapes) {\n      applyStyle(shape);\n\n      if (shape.type === \"circle\") {\n        ctx.beginPath();\n        ctx.arc(x(shape.x), y(shape.y), dx(shape.r), 0, Math.PI * 2);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"rectangle\") {\n        const left = x(shape.x);\n        const top = y(shape.y + shape.height);\n        const width = x(shape.x + shape.width) - x(shape.x);\n        const height = y(shape.y) - y(shape.y + shape.height);\n        ctx.beginPath();\n        ctx.rect(left, top, width, height);\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"polygon\") {\n        ctx.beginPath();\n        shape.points.forEach((point, index) => {\n          const px = x(point[0]);\n          const py = y(point[1]);\n          if (index === 0) ctx.moveTo(px, py);\n          else ctx.lineTo(px, py);\n        });\n        ctx.closePath();\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"line\") {\n        ctx.beginPath();\n        ctx.moveTo(x(shape.x1), y(shape.y1));\n        ctx.lineTo(x(shape.x2), y(shape.y2));\n        ctx.stroke();\n      }\n\n      if (shape.type === \"dimensionLine\") {\n        const x1 = x(shape.x1);\n        const y1 = y(shape.y1);\n        const x2 = x(shape.x2);\n        const y2 = y(shape.y2);\n        ctx.beginPath();\n        ctx.moveTo(x1, y1);\n        ctx.lineTo(x2, y2);\n        ctx.stroke();\n        if (shape.arrows !== false) {\n          drawArrowHead(x2, y2, x1, y1, shape.arrowSize ?? 6);\n          drawArrowHead(x1, y1, x2, y2, shape.arrowSize ?? 6);\n        }\n        if (shape.label) {\n          ctx.fillStyle = shape.labelColor ?? shape.stroke ?? \"#000000\";\n          ctx.fillText(shape.label, (x1 + x2) / 2, (y1 + y2) / 2 + (shape.labelOffsetY ?? -10));\n        }\n      }\n\n      if (shape.type === \"ellipseArc\") {\n        const centerX = x(shape.x);\n        const centerY = y(shape.y);\n        const radiusX = dx(shape.radiusX);\n        const radiusY = dy(shape.radiusY);\n        ctx.beginPath();\n        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, shape.startAngle ?? 0, shape.endAngle ?? Math.PI, shape.anticlockwise ?? false);\n        if (shape.closePath) {\n          ctx.lineTo(x(shape.closeToX ?? (shape.x - shape.radiusX)), y(shape.closeToY ?? shape.y));\n          ctx.closePath();\n        }\n        if (shape.fill && shape.fill !== \"transparent\") ctx.fill();\n        ctx.stroke();\n      }\n\n      if (shape.type === \"text\") {\n        ctx.fillStyle = shape.fill ?? \"#000000\";\n        ctx.fillText(shape.text, x(shape.x), y(shape.y));\n      }\n    }\n    ctx.restore();\n  }\n};"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de producción de calzado lleva un registro mensual de unidades producidas\ny vendidas durante el primer semestre del año. La siguiente tabla resume la información.",
+        "Un analista afirma: “En ningún mes se vendió más de lo que se produjo”. Esta afirmación es:"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 1",
+          "columnas": [
+            "Mes",
+            "Unidades producidas",
+            "Unidades vendidas"
+          ],
+          "filas": [
+            [
+              "Enero",
+              "1.200",
+              "1.050"
+            ],
+            [
+              "Febrero",
+              "1.350",
+              "1.350"
+            ],
+            [
+              "Marzo",
+              "1.100",
+              "1.200"
+            ],
+            [
+              "Abril",
+              "1.500",
+              "1.400"
+            ],
+            [
+              "Mayo",
+              "1.250",
+              "1.000"
+            ],
+            [
+              "Junio",
+              "1.400",
+              "1.450"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Un analista afirma: “En ningún mes se vendió más de lo que se produjo”. Esta afirmación es:",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Correcta, porque la empresa siempre produce para atender la demanda."
+        },
+        {
+          "id": "B",
+          "texto": "Incorrecta, porque en marzo y junio las unidades vendidas superaron a las producidas."
+        },
+        {
+          "id": "C",
+          "texto": "Correcta, porque el total de unidades vendidas es menor que el total de unidades producidas."
+        },
+        {
+          "id": "D",
+          "texto": "Incorrecta, porque en febrero las unidades vendidas igualaron a las producidas, lo cual no es “vender más”."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "En marzo y junio las unidades vendidas superan a las unidades producidas."
+      }
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de producción de calzado lleva un registro mensual de unidades producidas\ny vendidas durante el primer semestre del año. La siguiente tabla resume la información.",
+        "El promedio mensual de unidades producidas durante el semestre es de 1.300. ¿Qué puede concluirse\na partir de los datos de la tabla?"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 2",
+          "columnas": [
+            "Mes",
+            "Unidades producidas",
+            "Unidades vendidas"
+          ],
+          "filas": [
+            [
+              "Enero",
+              "1.200",
+              "1.050"
+            ],
+            [
+              "Febrero",
+              "1.350",
+              "1.350"
+            ],
+            [
+              "Marzo",
+              "1.100",
+              "1.200"
+            ],
+            [
+              "Abril",
+              "1.500",
+              "1.400"
+            ],
+            [
+              "Mayo",
+              "1.250",
+              "1.000"
+            ],
+            [
+              "Junio",
+              "1.400",
+              "1.450"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "El promedio mensual de unidades producidas durante el semestre es de 1.300. ¿Qué puede concluirse\na partir de los datos de la tabla?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Todos los meses la producción estuvo por encima del promedio."
+        },
+        {
+          "id": "B",
+          "texto": "La mitad de los meses la producción estuvo por debajo del promedio y la otra mitad por encima."
+        },
+        {
+          "id": "C",
+          "texto": "El mes con mayor distancia respecto al promedio fue febrero, con 50 unidades por encima."
+        },
+        {
+          "id": "D",
+          "texto": "Enero, febrero y mayo tuvieron una producción por debajo del promedio semestral."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La producción queda por debajo del promedio en enero, marzo y mayo, y por encima en febrero, abril y junio."
+      }
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa de producción de calzado lleva un registro mensual de unidades producidas\ny vendidas durante el primer semestre del año. La siguiente tabla resume la información.",
+        "Si el precio de venta por par de zapatos es \\(\\$85.000\\) y el costo de producción por par es \\(\\$52.000\\),\n¿cuál es la ganancia bruta total obtenida en el semestre?"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 3",
+          "columnas": [
+            "Mes",
+            "Unidades producidas",
+            "Unidades vendidas"
+          ],
+          "filas": [
+            [
+              "Enero",
+              "1.200",
+              "1.050"
+            ],
+            [
+              "Febrero",
+              "1.350",
+              "1.350"
+            ],
+            [
+              "Marzo",
+              "1.100",
+              "1.200"
+            ],
+            [
+              "Abril",
+              "1.500",
+              "1.400"
+            ],
+            [
+              "Mayo",
+              "1.250",
+              "1.000"
+            ],
+            [
+              "Junio",
+              "1.400",
+              "1.450"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Si el precio de venta por par de zapatos es \\(\\$85.000\\) y el costo de producción por par es \\(\\$52.000\\),\n¿cuál es la ganancia bruta total obtenida en el semestre?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\$222.750.000\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\$231.000.000\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\$237.600.000\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\$247.500.000\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "inconsistencia_detectada",
+        "explicacion": "No hay opción exacta: con unidades vendidas, la ganancia sería \\(7.450\\times \\$33.000=\\$245.850.000\\). Con unidades producidas tampoco coincide con las opciones."
+      }
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una institución educativa contrata buses para transportar estudiantes a un evento deportivo.\nCada bus tiene capacidad para 48 personas. El costo del alquiler de cada bus es \\(\\$320.000\\)\ny se cobra una tarifa única de \\(\\$15.000\\) por estudiante. Los profesores viajan gratis y\ncada bus lleva obligatoriamente un profesor acompañante.",
+        "Si asisten 180 estudiantes al evento, ¿cuántos buses se necesitan como mínimo y cuántos\nlugares quedan libres (sin contar a los profesores)?"
+      ],
+      "materiales": [],
+      "pregunta": "Si asisten 180 estudiantes al evento, ¿cuántos buses se necesitan como mínimo y cuántos\nlugares quedan libres (sin contar a los profesores)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "3 buses, 4 lugares libres."
+        },
+        {
+          "id": "B",
+          "texto": "4 buses, 12 lugares libres."
+        },
+        {
+          "id": "C",
+          "texto": "4 buses, ningún lugar libre."
+        },
+        {
+          "id": "D",
+          "texto": "5 buses, 40 lugares libres."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada_con_observacion",
+        "explicacion": "La opción B asume \\(48\\) cupos para estudiantes por bus: \\(4\\times48-180=12\\). Si los profesores ocupan cupo dentro de los \\(48\\), quedarían \\(8\\) cupos libres y no habría opción exacta."
+      }
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una institución educativa contrata buses para transportar estudiantes a un evento deportivo.\nCada bus tiene capacidad para 48 personas. El costo del alquiler de cada bus es \\(\\$320.000\\)\ny se cobra una tarifa única de \\(\\$15.000\\) por estudiante. Los profesores viajan gratis y\ncada bus lleva obligatoriamente un profesor acompañante.",
+        "El coordinador afirma que con la tarifa cobrada a los estudiantes se cubrirá exactamente\nel costo total del alquiler de los 4 buses. ¿Esta afirmación es correcta?"
+      ],
+      "materiales": [],
+      "pregunta": "El coordinador afirma que con la tarifa cobrada a los estudiantes se cubrirá exactamente\nel costo total del alquiler de los 4 buses. ¿Esta afirmación es correcta?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque \\(180 \\times \\$15.000 = 4 \\times \\$320.000 = \\$1.280.000\\)."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque la tarifa recaudada (\\(\\$2.700.000\\)) es mayor que el costo del alquiler (\\(\\$1.280.000\\))."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque el costo por estudiante debería ser \\(\\$17.778\\) para cubrir exactamente el alquiler."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, siempre que cada bus lleve exactamente 45 estudiantes."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El recaudo es \\(180\\times\\$15.000=\\$2.700.000\\) y el alquiler es \\(4\\times\\$320.000=\\$1.280.000\\)."
+      }
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una institución educativa contrata buses para transportar estudiantes a un evento deportivo.\nCada bus tiene capacidad para 48 personas. El costo del alquiler de cada bus es \\(\\$320.000\\)\ny se cobra una tarifa única de \\(\\$15.000\\) por estudiante. Los profesores viajan gratis y\ncada bus lleva obligatoriamente un profesor acompañante.",
+        "Si la institución quiere que la tarifa cobrada por estudiante cubra exactamente el costo del\nalquiler de los buses (sin excedente ni déficit), ¿cuál debería ser esa tarifa?"
+      ],
+      "materiales": [],
+      "pregunta": "Si la institución quiere que la tarifa cobrada por estudiante cubra exactamente el costo del\nalquiler de los buses (sin excedente ni déficit), ¿cuál debería ser esa tarifa?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\$6.667\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\$7.111\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\$7.500\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\$8.000\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La tarifa exacta sería \\(\\$1.280.000\\div180\\approx\\$7.111\\)."
+      }
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La siguiente gráfica muestra la variación de temperatura (en \\(^\\circ\\)C) registrada en una ciudad\ndurante 12 horas del día, desde las 6:00 a.m. hasta las 6:00 p.m.",
+        "Según la gráfica, ¿en cuál intervalo de tiempo la temperatura aumentó más rápidamente?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q7_grafico_1",
+          "descripcion": "Gráfico 1",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "6am",
+                "8am",
+                "10am",
+                "12m",
+                "2pm",
+                "4pm",
+                "6pm"
+              ],
+              "datasets": [
+                {
+                  "label": "Serie 1",
+                  "data": [
+                    14.0,
+                    18.0,
+                    24.0,
+                    32.0,
+                    30.0,
+                    25.0,
+                    19.0
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "title": {
+                  "display": true,
+                  "text": "Gráfico 1"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Hora (h después de las 6 a.m.)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": false,
+                  "title": {
+                    "display": true,
+                    "text": "Temperatura (\\(^\\circ\\)C)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Según la gráfica, ¿en cuál intervalo de tiempo la temperatura aumentó más rápidamente?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "De las 8 a.m. a las 10 a.m."
+        },
+        {
+          "id": "B",
+          "texto": "De las 6 a.m. a las 8 a.m."
+        },
+        {
+          "id": "C",
+          "texto": "De las 10 a.m. a las 12 m."
+        },
+        {
+          "id": "D",
+          "texto": "De las 4 p.m. a las 6 p.m."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "El mayor aumento ocurre de 10 a.m. a 12 m.: \\(32-24=8\\,^\\circ\\text{C}\\) en \\(2\\) horas."
+      }
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La siguiente gráfica muestra la variación de temperatura (en \\(^\\circ\\)C) registrada en una ciudad\ndurante 12 horas del día, desde las 6:00 a.m. hasta las 6:00 p.m.",
+        "Un meteorólogo afirma que la temperatura promedio durante esas 12 horas fue de \\(25\\,^\\circ\\)C.\n¿Es correcta esta afirmación?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q8_grafico_1",
+          "descripcion": "Gráfico 1",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "6am",
+                "8am",
+                "10am",
+                "12m",
+                "2pm",
+                "4pm",
+                "6pm"
+              ],
+              "datasets": [
+                {
+                  "label": "Serie 1",
+                  "data": [
+                    14.0,
+                    18.0,
+                    24.0,
+                    32.0,
+                    30.0,
+                    25.0,
+                    19.0
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "title": {
+                  "display": true,
+                  "text": "Gráfico 1"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Hora (h después de las 6 a.m.)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": false,
+                  "title": {
+                    "display": true,
+                    "text": "Temperatura (\\(^\\circ\\)C)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Un meteorólogo afirma que la temperatura promedio durante esas 12 horas fue de \\(25\\,^\\circ\\)C.\n¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque sumando todos los valores y dividiendo entre 7 se obtiene exactamente 25."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque el promedio de los datos registrados es aproximadamente \\(23,1\\,^\\circ\\)C."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque el promedio solo puede calcularse si la temperatura varía de forma lineal."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque la temperatura máxima (32) y la mínima (14) promedian 23, que está cerca de 25."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El promedio de los registros es \\(\\frac{14+18+24+32+30+25+19}{7}\\approx23{,}1\\,^\\circ\\text{C}\\)."
+      }
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La siguiente gráfica muestra la variación de temperatura (en \\(^\\circ\\)C) registrada en una ciudad\ndurante 12 horas del día, desde las 6:00 a.m. hasta las 6:00 p.m.",
+        "Si la temperatura sigue disminuyendo a partir de las 6 p.m. a la misma tasa promedio a la que\ndisminuyó entre las 2 p.m. y las 6 p.m., ¿cuál será la temperatura estimada a las 8 p.m.?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q9_grafico_1",
+          "descripcion": "Gráfico 1",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "line",
+            "data": {
+              "labels": [
+                "6am",
+                "8am",
+                "10am",
+                "12m",
+                "2pm",
+                "4pm",
+                "6pm"
+              ],
+              "datasets": [
+                {
+                  "label": "Serie 1",
+                  "data": [
+                    14.0,
+                    18.0,
+                    24.0,
+                    32.0,
+                    30.0,
+                    25.0,
+                    19.0
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "title": {
+                  "display": true,
+                  "text": "Gráfico 1"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": true,
+                    "text": "Hora (h después de las 6 a.m.)"
+                  }
+                },
+                "y": {
+                  "beginAtZero": false,
+                  "title": {
+                    "display": true,
+                    "text": "Temperatura (\\(^\\circ\\)C)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Si la temperatura sigue disminuyendo a partir de las 6 p.m. a la misma tasa promedio a la que\ndisminuyó entre las 2 p.m. y las 6 p.m., ¿cuál será la temperatura estimada a las 8 p.m.?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(13\\,^\\circ\\)C"
+        },
+        {
+          "id": "B",
+          "texto": "\\(14\\,^\\circ\\)C"
+        },
+        {
+          "id": "C",
+          "texto": "\\(15,5\\,^\\circ\\)C"
+        },
+        {
+          "id": "D",
+          "texto": "\\(16\\,^\\circ\\)C"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "inconsistencia_detectada",
+        "explicacion": "Con la tasa promedio entre 2 p.m. y 6 p.m., la temperatura a las 8 p.m. sería \\(13{,}5\\,^\\circ\\text{C}\\); no aparece exactamente en las opciones."
+      }
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "¿Cuál es el volumen de la nueva caja rediseñada?"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el volumen de la nueva caja rediseñada?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(36.000~\\text{cm}^3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(46.656~\\text{cm}^3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(54.000~\\text{cm}^3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(64.800~\\text{cm}^3\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La nueva arista es \\(30\\times1{,}2=36\\,\\text{cm}\\), y el volumen es \\(36^3=46.656\\,\\text{cm}^3\\)."
+      }
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "Un operario afirma que, al aumentar cada arista en un \\(20\\,\\%\\), el volumen también\naumentará en un \\(20\\,\\%\\). ¿Es correcta esta afirmación?"
+      ],
+      "materiales": [],
+      "pregunta": "Un operario afirma que, al aumentar cada arista en un \\(20\\,\\%\\), el volumen también\naumentará en un \\(20\\,\\%\\). ¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque si todas las dimensiones aumentan en el mismo porcentaje, el volumen también aumenta en ese porcentaje."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque el volumen es una medida cúbica y el porcentaje de aumento es aproximadamente del \\(72,8\\,\\%\\)."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque el volumen aumenta en un \\(60\\,\\%\\), ya que la caja tiene tres dimensiones."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, siempre que el material de la caja tenga el mismo grosor."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El volumen cambia por el factor \\(1{,}2^3=1{,}728\\), es decir, aumenta \\(72{,}8\\,\\%\\)."
+      }
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "Si el costo de producción de cada caja es proporcional a su área superficial total,\n¿en qué porcentaje aumentará el costo al pasar a la caja rediseñada?"
+      ],
+      "materiales": [],
+      "pregunta": "Si el costo de producción de cada caja es proporcional a su área superficial total,\n¿en qué porcentaje aumentará el costo al pasar a la caja rediseñada?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(20\\,\\%\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(40\\,\\%\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(44\\,\\%\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(60\\,\\%\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "El área superficial cambia por el factor \\(1{,}2^2=1{,}44\\), es decir, aumenta \\(44\\,\\%\\)."
+      }
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "Observe el siguiente patrón de figuras formadas con palillos:\nSi la figura \\(n\\) tiene \\(n\\) cuadrados en fila, ¿cuál expresión representa el número de\npalillos necesarios para construir la figura \\(n\\)?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q13_grafico_1",
+          "descripcion": "Figura convertida desde TikZ a un lienzo Chart.js mediante plugin de formas. Revisar coordenadas visuales si se requiere fidelidad exacta.",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "scatter",
+            "data": {
+              "datasets": []
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": false
+                },
+                "title": {
+                  "display": true,
+                  "text": "Figura 1"
+                },
+                "canvasShapesPlugin": {
+                  "shapes": [
+                    {
+                      "type": "text",
+                      "x": 5,
+                      "y": 5,
+                      "text": "Figura 1",
+                      "font": "16px sans-serif"
+                    }
+                  ]
+                }
+              },
+              "scales": {
+                "x": {
+                  "min": 0,
+                  "max": 10,
+                  "display": false
+                },
+                "y": {
+                  "min": 0,
+                  "max": 10,
+                  "display": false
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Observe el siguiente patrón de figuras formadas con palillos:\nSi la figura \\(n\\) tiene \\(n\\) cuadrados en fila, ¿cuál expresión representa el número de\npalillos necesarios para construir la figura \\(n\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(4n\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(3n + 1\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(2n + 2\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(n^2 + 3\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La figura 1 usa \\(4\\) palillos y cada nuevo cuadrado agrega \\(3\\): \\(4+3(n-1)=3n+1\\)."
+      }
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "Una motocicleta consume en promedio 1 litro de gasolina por cada 35 km recorridos.\nSi la gasolina cuesta \\(\\$10.500\\) por litro, ¿cuánto debe pagar su dueño si recorre 420 km?"
+      ],
+      "materiales": [],
+      "pregunta": "Una motocicleta consume en promedio 1 litro de gasolina por cada 35 km recorridos.\nSi la gasolina cuesta \\(\\$10.500\\) por litro, ¿cuánto debe pagar su dueño si recorre 420 km?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\$126.000\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\$132.000\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\$147.000\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\$157.500\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "Se consumen \\(420\\div35=12\\) litros; entonces \\(12\\times\\$10.500=\\$126.000\\)."
+      }
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "En una encuesta realizada a 400 personas se encontró que el \\(35\\,\\%\\) prefiere el fútbol,\nel \\(25\\,\\%\\) el baloncesto y el resto prefiere otros deportes. ¿Cuántas personas prefieren\ndeportes distintos al fútbol y al baloncesto?"
+      ],
+      "materiales": [],
+      "pregunta": "En una encuesta realizada a 400 personas se encontró que el \\(35\\,\\%\\) prefiere el fútbol,\nel \\(25\\,\\%\\) el baloncesto y el resto prefiere otros deportes. ¿Cuántas personas prefieren\ndeportes distintos al fútbol y al baloncesto?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(140\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(160\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(180\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(200\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El porcentaje restante es \\(100\\%-35\\%-25\\%=40\\%\\), y \\(0{,}40\\times400=160\\)."
+      }
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "Una empresa de telecomunicaciones ofrece dos planes de telefonía celular:\n • Plan A: Cuota fija de \\(\\$25.000\\) al mes más \\(\\$80\\) por minuto de llamada.\n • Plan B: Sin cuota fija, con un costo de \\(\\$200\\) por minuto de llamada.\n¿A partir de cuántos minutos de llamada mensual resulta más económico el Plan A?"
+      ],
+      "materiales": [],
+      "pregunta": "Una empresa de telecomunicaciones ofrece dos planes de telefonía celular:\n • Plan A: Cuota fija de \\(\\$25.000\\) al mes más \\(\\$80\\) por minuto de llamada.\n • Plan B: Sin cuota fija, con un costo de \\(\\$200\\) por minuto de llamada.\n¿A partir de cuántos minutos de llamada mensual resulta más económico el Plan A?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "A partir de 200 minutos."
+        },
+        {
+          "id": "B",
+          "texto": "A partir de 208 minutos."
+        },
+        {
+          "id": "C",
+          "texto": "A partir de 312 minutos."
+        },
+        {
+          "id": "D",
+          "texto": "A partir de 209 minutos."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "D",
+        "estado": "validada",
+        "explicacion": "\\(25.000+80m<200m\\Rightarrow m>208{,}33\\); por tanto, desde \\(209\\) minutos."
+      }
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una fábrica produce cajas cúbicas de cartón para empacar productos. Actualmente fabrican\nuna caja cuya arista mide 30 cm. Están evaluando rediseñar la caja aumentando cada arista\nen un \\(20\\,\\%\\).",
+        "De las siguientes afirmaciones sobre números reales, ¿cuál es verdadera?\n • El conjunto solución de \\(x^2 - 5x + 6 < 0\\) es el intervalo \\((2,\\,3)\\).\n • Todo número real satisface \\(x^2 + 4 \\leq 0\\).\n • El conjunto solución de \\(2x - 1 > 7\\) es el intervalo \\((-\\infty,\\, 4)\\).\n • Si \\(x > 2\\) entonces \\(x^2 > 4\\), para todo \\(x \\in \\mathbb{R}\\)."
+      ],
+      "materiales": [],
+      "pregunta": "De las siguientes afirmaciones sobre números reales, ¿cuál es verdadera?\n • El conjunto solución de \\(x^2 - 5x + 6 < 0\\) es el intervalo \\((2,\\,3)\\).\n • Todo número real satisface \\(x^2 + 4 \\leq 0\\).\n • El conjunto solución de \\(2x - 1 > 7\\) es el intervalo \\((-\\infty,\\, 4)\\).\n • Si \\(x > 2\\) entonces \\(x^2 > 4\\), para todo \\(x \\in \\mathbb{R}\\).",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Solo I."
+        },
+        {
+          "id": "B",
+          "texto": "Solo I y IV."
+        },
+        {
+          "id": "C",
+          "texto": "Solo II y III."
+        },
+        {
+          "id": "D",
+          "texto": "Solo I y III."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La afirmación I es verdadera y la IV también; II y III son falsas."
+      }
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "¿Cuál es la distancia en metros del recorrido que va de la Biblioteca al Parque y luego al Colegio?"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es la distancia en metros del recorrido que va de la Biblioteca al Parque y luego al Colegio?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "500 m"
+        },
+        {
+          "id": "B",
+          "texto": "600 m"
+        },
+        {
+          "id": "C",
+          "texto": "700 m"
+        },
+        {
+          "id": "D",
+          "texto": "800 m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "El recorrido mide \\(4+3=7\\) unidades, equivalentes a \\(700\\,\\text{m}\\)."
+      }
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "Una persona quiere ir directamente de la Biblioteca al Colegio en línea recta. ¿Cuántos metros recorre?"
+      ],
+      "materiales": [],
+      "pregunta": "Una persona quiere ir directamente de la Biblioteca al Colegio en línea recta. ¿Cuántos metros recorre?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(400\\sqrt{2}\\) m"
+        },
+        {
+          "id": "B",
+          "texto": "\\(500\\) m"
+        },
+        {
+          "id": "C",
+          "texto": "\\(300\\sqrt{2}\\) m"
+        },
+        {
+          "id": "D",
+          "texto": "\\(500\\sqrt{2}\\) m \\quad (aprox. 707 m)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La distancia directa es \\(\\sqrt{4^2+3^2}=5\\) unidades, equivalentes a \\(500\\,\\text{m}\\)."
+      }
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "Un estudiante afirma que el punto medio del segmento que une la Biblioteca con el Colegio\nes el mismo punto donde está el Parque. ¿Es correcta esta afirmación?"
+      ],
+      "materiales": [],
+      "pregunta": "Un estudiante afirma que el punto medio del segmento que une la Biblioteca con el Colegio\nes el mismo punto donde está el Parque. ¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque el punto medio de \\(B(1,4)\\) y \\(C(5,1)\\) es \\((3;\\,2{,}5)\\), que es el Parque."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque el punto medio de \\(B(1,4)\\) y \\(C(5,1)\\) es \\((3;\\,2{,}5)\\), que no coincide con \\(P(5,4)\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque los tres puntos son vértices de un rectángulo."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque para que haya un punto medio los tres puntos deberían ser colineales."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El punto medio es \\(\\left(\\frac{1+5}{2},\\frac{4+1}{2}\\right)=(3,2{,}5)\\), no \\(P(5,4)\\)."
+      }
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "Un árbol proyecta una sombra de 8 m al mismo tiempo que un poste de 3 m de altura\nproyecta una sombra de 2 m. ¿Cuál es la altura del árbol?"
+      ],
+      "materiales": [],
+      "pregunta": "Un árbol proyecta una sombra de 8 m al mismo tiempo que un poste de 3 m de altura\nproyecta una sombra de 2 m. ¿Cuál es la altura del árbol?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "10 m"
+        },
+        {
+          "id": "B",
+          "texto": "12 m"
+        },
+        {
+          "id": "C",
+          "texto": "14 m"
+        },
+        {
+          "id": "D",
+          "texto": "16 m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Por semejanza, \\(h/8=3/2\\), entonces \\(h=12\\,\\text{m}\\)."
+      }
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "En un plano arquitectónico a escala \\(1:50\\), una habitación mide \\(6~\\text{cm} \\times 4~\\text{cm}\\).\n¿Cuál es el área real de la habitación?"
+      ],
+      "materiales": [],
+      "pregunta": "En un plano arquitectónico a escala \\(1:50\\), una habitación mide \\(6~\\text{cm} \\times 4~\\text{cm}\\).\n¿Cuál es el área real de la habitación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(24~\\text{m}^2\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(60~\\text{m}^2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(600~\\text{m}^2\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(1200~\\text{m}^2\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": null,
+        "estado": "inconsistencia_detectada",
+        "explicacion": "A escala \\(1:50\\), \\(6\\,\\text{cm}\\times4\\,\\text{cm}\\) representan \\(3\\,\\text{m}\\times2\\,\\text{m}\\), área real \\(6\\,\\text{m}^2\\); no aparece en las opciones."
+      }
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "En la figura se muestra un triángulo rectángulo con cateto opuesto de 5 cm, cateto\nadyacente de 12 cm y el ángulo \\(\\theta\\) en la esquina inferior derecha.\nUn estudiante calcula \\(\\tan\\theta = \\dfrac{5}{12}\\).\nUn compañero le dice que cometió un error porque la tangente siempre debe ser mayor que 1.\n¿Quién tiene la razón?"
+      ],
+      "materiales": [],
+      "pregunta": "En la figura se muestra un triángulo rectángulo con cateto opuesto de 5 cm, cateto\nadyacente de 12 cm y el ángulo \\(\\theta\\) en la esquina inferior derecha.\nUn estudiante calcula \\(\\tan\\theta = \\dfrac{5}{12}\\).\nUn compañero le dice que cometió un error porque la tangente siempre debe ser mayor que 1.\n¿Quién tiene la razón?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "El compañero, porque \\(\\tan\\theta > 1\\) siempre que el ángulo sea agudo."
+        },
+        {
+          "id": "B",
+          "texto": "El estudiante, porque \\(\\tan\\theta = \\dfrac{\\text{opuesto}}{\\text{adyacente}} = \\dfrac{5}{12}\\), que es correcto."
+        },
+        {
+          "id": "C",
+          "texto": "Ninguno, porque la tangente no se puede calcular en un triángulo rectángulo."
+        },
+        {
+          "id": "D",
+          "texto": "El compañero, porque debería usarse \\(\\tan\\theta = \\dfrac{12}{5}\\) al ser el ángulo \\(\\theta\\) el de referencia."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La tangente puede ser menor que \\(1\\); \\(\\tan\\theta=\\frac{\\text{opuesto}}{\\text{adyacente}}=\\frac{5}{12}\\)."
+      }
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un mapa de una ciudad, cada unidad del plano cartesiano equivale a 100 metros.\nTres puntos de interés están ubicados así:\n • Biblioteca: \\(B(1,\\,4)\\)\n • Parque: \\(P(5,\\,4)\\)\n • Colegio: \\(C(5,\\,1)\\)",
+        "Se tiene un rectángulo cuyo perímetro es 48 cm. Si se llama \\(x\\) a la longitud de uno de\nsus lados, ¿cuál expresión representa el área del rectángulo en función de \\(x\\)?"
+      ],
+      "materiales": [],
+      "pregunta": "Se tiene un rectángulo cuyo perímetro es 48 cm. Si se llama \\(x\\) a la longitud de uno de\nsus lados, ¿cuál expresión representa el área del rectángulo en función de \\(x\\)?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(A(x) = x^2 - 48x\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(A(x) = 24x - x^2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(A(x) = 48x - 2x^2\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(A(x) = x(48 - x)\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Si el perímetro es \\(48\\), los lados suman \\(24\\); el otro lado es \\(24-x\\) y el área es \\(A(x)=x(24-x)=24x-x^2\\)."
+      }
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa fabrica envases cilíndricos para almacenar pinturas. El cilindro actual tiene\nradio \\(r = 10~\\text{cm}\\) y altura \\(h = 25~\\text{cm}\\). Se analiza una propuesta de rediseño\nque consiste en mantener el mismo volumen pero reducir el radio a \\(r = 8~\\text{cm}\\).",
+        "¿Cuál es el volumen del cilindro actual? Exprese la respuesta en términos de \\(\\pi\\)."
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es el volumen del cilindro actual? Exprese la respuesta en términos de \\(\\pi\\).",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(2000\\pi~\\text{cm}^3\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(2500\\pi~\\text{cm}^3\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(3000\\pi~\\text{cm}^3\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(3500\\pi~\\text{cm}^3\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "\\(V=\\pi r^2h=\\pi(10^2)(25)=2500\\pi\\,\\text{cm}^3\\)."
+      }
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa fabrica envases cilíndricos para almacenar pinturas. El cilindro actual tiene\nradio \\(r = 10~\\text{cm}\\) y altura \\(h = 25~\\text{cm}\\). Se analiza una propuesta de rediseño\nque consiste en mantener el mismo volumen pero reducir el radio a \\(r = 8~\\text{cm}\\).",
+        "¿Qué altura deberá tener el nuevo cilindro para mantener el mismo volumen?"
+      ],
+      "materiales": [],
+      "pregunta": "¿Qué altura deberá tener el nuevo cilindro para mantener el mismo volumen?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(h = 36~\\text{cm}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(h = 38{,}5~\\text{cm}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(h = 39{,}0625~\\text{cm}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(h = 40~\\text{cm}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(2500\\pi=\\pi(8^2)h\\), por tanto \\(h=2500/64=39{,}0625\\,\\text{cm}\\)."
+      }
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una empresa fabrica envases cilíndricos para almacenar pinturas. El cilindro actual tiene\nradio \\(r = 10~\\text{cm}\\) y altura \\(h = 25~\\text{cm}\\). Se analiza una propuesta de rediseño\nque consiste en mantener el mismo volumen pero reducir el radio a \\(r = 8~\\text{cm}\\).",
+        "Un ingeniero afirma que si se reduce el radio en un \\(20\\,\\%\\) (de 10 a 8 cm), la altura\ntambién debería aumentar en un \\(20\\,\\%\\) para conservar el volumen. ¿Es correcta esta afirmación?"
+      ],
+      "materiales": [],
+      "pregunta": "Un ingeniero afirma que si se reduce el radio en un \\(20\\,\\%\\) (de 10 a 8 cm), la altura\ntambién debería aumentar en un \\(20\\,\\%\\) para conservar el volumen. ¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque los cambios porcentuales en radio y altura se compensan directamente."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque al reducir el radio en \\(20\\,\\%\\), el área de la base disminuye en \\(36\\,\\%\\), por lo que la altura debe aumentar en un porcentaje mayor."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, si el material del envase es el mismo."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque el volumen depende del diámetro, no del radio."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Al reducir el radio de \\(10\\) a \\(8\\), el área de base queda en \\(64\\%\\) de la original; la altura debe aumentar más que \\(20\\%\\)."
+      }
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un colegio se realizó una encuesta a 200 estudiantes de grado 11 sobre el tiempo diario\n(en horas) dedicado al estudio fuera del horario escolar. Los resultados se resumen en la\ntabla de frecuencias:",
+        "¿Cuál es la moda del tiempo de estudio registrado en la encuesta?"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 28",
+          "columnas": [
+            "Tiempo (h)",
+            "Frecuencia absoluta",
+            "Frecuencia relativa"
+          ],
+          "filas": [
+            [
+              "0",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "1",
+              "50",
+              "0{,}25"
+            ],
+            [
+              "2",
+              "70",
+              "0{,}35"
+            ],
+            [
+              "3",
+              "40",
+              "0{,}20"
+            ],
+            [
+              "4 o más",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "Total",
+              "200",
+              "1{,}00"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "¿Cuál es la moda del tiempo de estudio registrado en la encuesta?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "1 hora"
+        },
+        {
+          "id": "B",
+          "texto": "2 horas"
+        },
+        {
+          "id": "C",
+          "texto": "3 horas"
+        },
+        {
+          "id": "D",
+          "texto": "4 horas"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La frecuencia mayor es \\(70\\), correspondiente a \\(2\\) horas."
+      }
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un colegio se realizó una encuesta a 200 estudiantes de grado 11 sobre el tiempo diario\n(en horas) dedicado al estudio fuera del horario escolar. Los resultados se resumen en la\ntabla de frecuencias:",
+        "Un docente afirma que más de la mitad de los estudiantes estudian 2 o más horas diarias.\n¿Es correcta esta afirmación?"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 29",
+          "columnas": [
+            "Tiempo (h)",
+            "Frecuencia absoluta",
+            "Frecuencia relativa"
+          ],
+          "filas": [
+            [
+              "0",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "1",
+              "50",
+              "0{,}25"
+            ],
+            [
+              "2",
+              "70",
+              "0{,}35"
+            ],
+            [
+              "3",
+              "40",
+              "0{,}20"
+            ],
+            [
+              "4 o más",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "Total",
+              "200",
+              "1{,}00"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Un docente afirma que más de la mitad de los estudiantes estudian 2 o más horas diarias.\n¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque solo el \\(35\\,\\%\\) estudia exactamente 2 horas."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque la frecuencia relativa acumulada de 2 horas o más es 0{,}65."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque solo se tienen datos de una muestra, no de todos los estudiantes."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque la mayoría estudia entre 2 y 4 horas."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "\\(2\\) o más horas suman \\(0{,}35+0{,}20+0{,}10=0{,}65\\)."
+      }
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un colegio se realizó una encuesta a 200 estudiantes de grado 11 sobre el tiempo diario\n(en horas) dedicado al estudio fuera del horario escolar. Los resultados se resumen en la\ntabla de frecuencias:",
+        "Si se selecciona al azar un estudiante de los encuestados, ¿cuál es la probabilidad de\nque estudie menos de 2 horas al día?"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 30",
+          "columnas": [
+            "Tiempo (h)",
+            "Frecuencia absoluta",
+            "Frecuencia relativa"
+          ],
+          "filas": [
+            [
+              "0",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "1",
+              "50",
+              "0{,}25"
+            ],
+            [
+              "2",
+              "70",
+              "0{,}35"
+            ],
+            [
+              "3",
+              "40",
+              "0{,}20"
+            ],
+            [
+              "4 o más",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "Total",
+              "200",
+              "1{,}00"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "Si se selecciona al azar un estudiante de los encuestados, ¿cuál es la probabilidad de\nque estudie menos de 2 horas al día?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(0{,}25\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(0{,}35\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(0{,}10\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(0{,}35\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada_con_observacion",
+        "explicacion": "Menos de \\(2\\) horas corresponde a \\((20+50)/200=0{,}35\\). Las opciones B y D son idénticas."
+      }
+    },
+    {
+      "id": 31,
+      "numero": 31,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un colegio se realizó una encuesta a 200 estudiantes de grado 11 sobre el tiempo diario\n(en horas) dedicado al estudio fuera del horario escolar. Los resultados se resumen en la\ntabla de frecuencias:",
+        "El rector del colegio afirma que el promedio de horas de estudio diario de los estudiantes\nencuestados es de exactamente 2 horas. Considerando los valores de la tabla (tomando\n“4 o más” como 4), ¿es correcta esta afirmación?"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 31",
+          "columnas": [
+            "Tiempo (h)",
+            "Frecuencia absoluta",
+            "Frecuencia relativa"
+          ],
+          "filas": [
+            [
+              "0",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "1",
+              "50",
+              "0{,}25"
+            ],
+            [
+              "2",
+              "70",
+              "0{,}35"
+            ],
+            [
+              "3",
+              "40",
+              "0{,}20"
+            ],
+            [
+              "4 o más",
+              "20",
+              "0{,}10"
+            ],
+            [
+              "Total",
+              "200",
+              "1{,}00"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "El rector del colegio afirma que el promedio de horas de estudio diario de los estudiantes\nencuestados es de exactamente 2 horas. Considerando los valores de la tabla (tomando\n“4 o más” como 4), ¿es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque el promedio ponderado es \\(1{,}95\\) horas."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque la moda coincide con 2 horas."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque el promedio ponderado es \\(2{,}10\\) horas."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, porque la frecuencia más alta corresponde a 2 horas, lo que indica que es el valor promedio."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "A",
+        "estado": "validada",
+        "explicacion": "El promedio ponderado es \\(\\frac{0\\cdot20+1\\cdot50+2\\cdot70+3\\cdot40+4\\cdot20}{200}=1{,}95\\)."
+      }
+    },
+    {
+      "id": 32,
+      "numero": 32,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un juego de feria, una ruleta está dividida en 10 sectores iguales numerados del 1 al 10.\nUn participante gana si la ruleta cae en un número par o en un múltiplo de 3.",
+        "¿Cuántos números del 1 al 10 son pares o múltiplos de 3?"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuántos números del 1 al 10 son pares o múltiplos de 3?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "5"
+        },
+        {
+          "id": "B",
+          "texto": "6"
+        },
+        {
+          "id": "C",
+          "texto": "7"
+        },
+        {
+          "id": "D",
+          "texto": "8"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La unión de pares y múltiplos de \\(3\\) es \\(\\{2,3,4,6,8,9,10\\}\\), con \\(7\\) números."
+      }
+    },
+    {
+      "id": 33,
+      "numero": 33,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un juego de feria, una ruleta está dividida en 10 sectores iguales numerados del 1 al 10.\nUn participante gana si la ruleta cae en un número par o en un múltiplo de 3.",
+        "¿Cuál es la probabilidad de que el participante gane en una sola tirada?"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es la probabilidad de que el participante gane en una sola tirada?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\dfrac{1}{2}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\dfrac{3}{5}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\dfrac{7}{10}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\dfrac{4}{5}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La probabilidad es \\(\\frac{7}{10}\\)."
+      }
+    },
+    {
+      "id": 34,
+      "numero": 34,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un juego de feria, una ruleta está dividida en 10 sectores iguales numerados del 1 al 10.\nUn participante gana si la ruleta cae en un número par o en un múltiplo de 3.",
+        "Si el participante juega 3 veces, un amigo le dice que la probabilidad de ganar\nal menos una vez es mayor que \\(\\dfrac{1}{2}\\). ¿Es correcta esta afirmación?"
+      ],
+      "materiales": [],
+      "pregunta": "Si el participante juega 3 veces, un amigo le dice que la probabilidad de ganar\nal menos una vez es mayor que \\(\\dfrac{1}{2}\\). ¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "No, porque la probabilidad de ganar al menos una vez es exactamente \\(\\dfrac{1}{2}\\)."
+        },
+        {
+          "id": "B",
+          "texto": "Sí, porque la probabilidad de no ganar ninguna vez es \\(\\left(\\dfrac{3}{10}\\right)^3 = 0{,}027\\), entonces la de ganar al menos una es \\(0{,}973\\)."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque los resultados de cada tirada son independientes."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, pero solo si el número ganador en cada tirada es diferente."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "La probabilidad de no ganar en tres tiradas es \\(\\left(\\frac{3}{10}\\right)^3=0{,}027\\); por tanto, ganar al menos una vez es \\(0{,}973\\)."
+      }
+    },
+    {
+      "id": 35,
+      "numero": 35,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un juego de feria, una ruleta está dividida en 10 sectores iguales numerados del 1 al 10.\nUn participante gana si la ruleta cae en un número par o en un múltiplo de 3.",
+        "El sistema de comunicaciones de un edificio de oficinas asigna códigos de acceso formados\npor 3 letras distintas (del abecedario, 27 letras) seguidas de 2 dígitos distintos (del 0 al 9).\n¿Cuántos códigos diferentes pueden formarse?"
+      ],
+      "materiales": [],
+      "pregunta": "El sistema de comunicaciones de un edificio de oficinas asigna códigos de acceso formados\npor 3 letras distintas (del abecedario, 27 letras) seguidas de 2 dígitos distintos (del 0 al 9).\n¿Cuántos códigos diferentes pueden formarse?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(27 \\times 26 \\times 25 \\times 10 \\times 9\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(27^3 \\times 10^2\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\dfrac{27!}{24!} \\times \\dfrac{10!}{8!}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "Tanto A como C son expresiones equivalentes correctas."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "D",
+        "estado": "validada",
+        "explicacion": "Las opciones A y C expresan el mismo conteo: \\(27\\times26\\times25\\times10\\times9\\)."
+      }
+    },
+    {
+      "id": 36,
+      "numero": 36,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "En un juego de feria, una ruleta está dividida en 10 sectores iguales numerados del 1 al 10.\nUn participante gana si la ruleta cae en un número par o en un múltiplo de 3.",
+        "En un salón de 30 estudiantes, 18 practican algún deporte y 14 tocan algún instrumento musical.\nSi 8 estudiantes practican deporte y tocan un instrumento, ¿cuál es la probabilidad\nde que un estudiante elegido al azar toque un instrumento, dado que se sabe que practica deporte?"
+      ],
+      "materiales": [],
+      "pregunta": "En un salón de 30 estudiantes, 18 practican algún deporte y 14 tocan algún instrumento musical.\nSi 8 estudiantes practican deporte y tocan un instrumento, ¿cuál es la probabilidad\nde que un estudiante elegido al azar toque un instrumento, dado que se sabe que practica deporte?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\dfrac{4}{15}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\dfrac{7}{15}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\dfrac{4}{9}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\dfrac{7}{9}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(P(\\text{instrumento}\\mid\\text{deporte})=\\frac{8}{18}=\\frac{4}{9}\\)."
+      }
+    },
+    {
+      "id": 37,
+      "numero": 37,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un deportista lanza una pelota hacia arriba. La altura de la pelota (en metros) en función\ndel tiempo (en segundos) está modelada por:\n\\[h(t) = -5t^2 + 20t + 1{,}5\\]\ndonde \\(t = 0\\) es el instante del lanzamiento.",
+        "¿Cuál es la altura máxima que alcanza la pelota?",
+        "\\[h(t) = -5t^2 + 20t + 1{,}5\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuál es la altura máxima que alcanza la pelota?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(20\\) m"
+        },
+        {
+          "id": "B",
+          "texto": "\\(21{,}5\\) m"
+        },
+        {
+          "id": "C",
+          "texto": "\\(22\\) m"
+        },
+        {
+          "id": "D",
+          "texto": "\\(25\\) m"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El vértice está en \\(t=2\\), y \\(h(2)=-5(2)^2+20(2)+1{,}5=21{,}5\\)."
+      }
+    },
+    {
+      "id": 38,
+      "numero": 38,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un deportista lanza una pelota hacia arriba. La altura de la pelota (en metros) en función\ndel tiempo (en segundos) está modelada por:\n\\[h(t) = -5t^2 + 20t + 1{,}5\\]\ndonde \\(t = 0\\) es el instante del lanzamiento.",
+        "¿En qué instante la pelota alcanza la altura máxima?",
+        "\\[h(t) = -5t^2 + 20t + 1{,}5\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿En qué instante la pelota alcanza la altura máxima?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(t = 1~\\text{s}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(t = 2~\\text{s}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(t = 4~\\text{s}\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(t = 5~\\text{s}\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El tiempo del vértice es \\(t=-\\frac{b}{2a}=-\\frac{20}{2(-5)}=2\\)."
+      }
+    },
+    {
+      "id": 39,
+      "numero": 39,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un deportista lanza una pelota hacia arriba. La altura de la pelota (en metros) en función\ndel tiempo (en segundos) está modelada por:\n\\[h(t) = -5t^2 + 20t + 1{,}5\\]\ndonde \\(t = 0\\) es el instante del lanzamiento.",
+        "Un entrenador afirma que la pelota tarda más de 4 segundos en caer al suelo\n(es decir, en volver a \\(h = 0\\)). ¿Es correcta esta afirmación?",
+        "\\[h(t) = -5t^2 + 20t + 1{,}5\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Un entrenador afirma que la pelota tarda más de 4 segundos en caer al suelo\n(es decir, en volver a \\(h = 0\\)). ¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque la pelota fue lanzada desde \\(h = 1{,}5\\) m y la función es cuadrática."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque la función \\(h(t)\\) es simétrica y el tiempo de caída es igual al de subida (2 s), dando un total de 4 s exactamente."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque al aplicar la fórmula cuadrática se obtiene un tiempo mayor a 4 s."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque la pelota cae exactamente a los 3 s por simetría de la parábola."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La raíz positiva de \\(h(t)=0\\) es ligeramente mayor que \\(4\\) segundos."
+      }
+    },
+    {
+      "id": 40,
+      "numero": 40,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un deportista lanza una pelota hacia arriba. La altura de la pelota (en metros) en función\ndel tiempo (en segundos) está modelada por:\n\\[h(t) = -5t^2 + 20t + 1{,}5\\]\ndonde \\(t = 0\\) es el instante del lanzamiento.",
+        "Una bacteria se reproduce duplicándose cada 30 minutos. Si al inicio hay 500 bacterias,\n¿cuál de las siguientes expresiones representa el número de bacterias transcurridas \\(t\\) horas?",
+        "\\[h(t) = -5t^2 + 20t + 1{,}5\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Una bacteria se reproduce duplicándose cada 30 minutos. Si al inicio hay 500 bacterias,\n¿cuál de las siguientes expresiones representa el número de bacterias transcurridas \\(t\\) horas?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(B(t) = 500 \\cdot 2^{t}\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(B(t) = 500 \\cdot 2^{2t}\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(B(t) = 1000t\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(B(t) = 500 + 2t\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "En \\(t\\) horas pasan \\(2t\\) periodos de \\(30\\) minutos; \\(B(t)=500\\cdot2^{2t}\\)."
+      }
+    },
+    {
+      "id": 41,
+      "numero": 41,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un deportista lanza una pelota hacia arriba. La altura de la pelota (en metros) en función\ndel tiempo (en segundos) está modelada por:\n\\[h(t) = -5t^2 + 20t + 1{,}5\\]\ndonde \\(t = 0\\) es el instante del lanzamiento.",
+        "La siguiente tabla muestra los valores de una función \\(f\\):\nCon base en la tabla, ¿cuál de las siguientes afirmaciones es correcta?",
+        "\\[h(t) = -5t^2 + 20t + 1{,}5\\]"
+      ],
+      "materiales": [
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla pregunta 41",
+          "columnas": [
+            "\\(x\\)",
+            "\\(-2\\)",
+            "\\(-1\\)",
+            "\\(0\\)",
+            "\\(1\\)",
+            "\\(2\\)"
+          ],
+          "filas": [
+            [
+              "\\(f(x)\\)",
+              "\\(5\\)",
+              "\\(2\\)",
+              "\\(1\\)",
+              "\\(2\\)",
+              "\\(5\\)"
+            ]
+          ]
+        }
+      ],
+      "pregunta": "La siguiente tabla muestra los valores de una función \\(f\\):\nCon base en la tabla, ¿cuál de las siguientes afirmaciones es correcta?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "La función es decreciente para todos los valores de \\(x\\) mostrados."
+        },
+        {
+          "id": "B",
+          "texto": "La función tiene un valor mínimo en \\(x = 0\\)."
+        },
+        {
+          "id": "C",
+          "texto": "La función no tiene simetría respecto al eje \\(y\\)."
+        },
+        {
+          "id": "D",
+          "texto": "La función es lineal, pues sus valores cambian de forma regular."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El menor valor de la tabla es \\(f(0)=1\\)."
+      }
+    },
+    {
+      "id": 42,
+      "numero": 42,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Un deportista lanza una pelota hacia arriba. La altura de la pelota (en metros) en función\ndel tiempo (en segundos) está modelada por:\n\\[h(t) = -5t^2 + 20t + 1{,}5\\]\ndonde \\(t = 0\\) es el instante del lanzamiento.",
+        "Dos amigas juntan su dinero. Si Valentina le da \\(\\$5.000\\) a Camila, ambas tendrán la misma\ncantidad. Si Camila le da \\(\\$5.000\\) a Valentina, Valentina tendrá el doble que Camila.\n¿Cuánto dinero tiene cada una?",
+        "\\[h(t) = -5t^2 + 20t + 1{,}5\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Dos amigas juntan su dinero. Si Valentina le da \\(\\$5.000\\) a Camila, ambas tendrán la misma\ncantidad. Si Camila le da \\(\\$5.000\\) a Valentina, Valentina tendrá el doble que Camila.\n¿Cuánto dinero tiene cada una?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Valentina: \\(\\$25.000\\) y Camila: \\(\\$15.000.\\)"
+        },
+        {
+          "id": "B",
+          "texto": "Valentina: \\(\\$35.000\\) y Camila: \\(\\$25.000.\\)"
+        },
+        {
+          "id": "C",
+          "texto": "Valentina: \\(\\$30.000\\) y Camila: \\(\\$20.000.\\)"
+        },
+        {
+          "id": "D",
+          "texto": "Valentina: \\(\\$40.000\\) y Camila: \\(\\$30.000.\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Al resolver el sistema se obtiene Valentina \\(=\\$35.000\\) y Camila \\(=\\$25.000\\)."
+      }
+    },
+    {
+      "id": 43,
+      "numero": 43,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra las ventas (en millones de pesos) de cuatro productos de una empresa\ndurante el primer y segundo semestre de un año.",
+        "¿Cuál es el producto que tuvo mayor crecimiento en ventas del primer al segundo semestre?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q43_grafico_1",
+          "descripcion": "Gráfico 1",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "Producto A",
+                "Producto B",
+                "Producto C",
+                "Producto D"
+              ],
+              "datasets": [
+                {
+                  "label": "Sem. 1",
+                  "data": [
+                    80.0,
+                    60.0,
+                    100.0,
+                    70.0
+                  ]
+                },
+                {
+                  "label": "Sem. 2",
+                  "data": [
+                    90.0,
+                    50.0,
+                    85.0,
+                    95.0
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": true
+                },
+                "title": {
+                  "display": true,
+                  "text": "Gráfico 1"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": false,
+                    "text": ""
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Ventas (millones \\$)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "¿Cuál es el producto que tuvo mayor crecimiento en ventas del primer al segundo semestre?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Producto A"
+        },
+        {
+          "id": "B",
+          "texto": "Producto B"
+        },
+        {
+          "id": "C",
+          "texto": "Producto C"
+        },
+        {
+          "id": "D",
+          "texto": "Producto D"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "D",
+        "estado": "validada",
+        "explicacion": "El mayor crecimiento es el del Producto D: de \\(70\\) a \\(95\\), aumento de \\(25\\)."
+      }
+    },
+    {
+      "id": 44,
+      "numero": 44,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra las ventas (en millones de pesos) de cuatro productos de una empresa\ndurante el primer y segundo semestre de un año.",
+        "Un gerente afirma que las ventas totales de la empresa aumentaron del primer al segundo semestre.\n¿Es correcta esta afirmación?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q44_grafico_1",
+          "descripcion": "Gráfico 1",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "Producto A",
+                "Producto B",
+                "Producto C",
+                "Producto D"
+              ],
+              "datasets": [
+                {
+                  "label": "Sem. 1",
+                  "data": [
+                    80.0,
+                    60.0,
+                    100.0,
+                    70.0
+                  ]
+                },
+                {
+                  "label": "Sem. 2",
+                  "data": [
+                    90.0,
+                    50.0,
+                    85.0,
+                    95.0
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": true
+                },
+                "title": {
+                  "display": true,
+                  "text": "Gráfico 1"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": false,
+                    "text": ""
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Ventas (millones \\$)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Un gerente afirma que las ventas totales de la empresa aumentaron del primer al segundo semestre.\n¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque la mayoría de los productos aumentaron sus ventas."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque las ventas totales del semestre 1 (\\(\\$310\\) M) son iguales a las del semestre 2 (\\(\\$320\\) M)."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque las ventas totales pasaron de \\(\\$310\\) M a \\(\\$320\\) M."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque el Producto C disminuyó sus ventas en el segundo semestre."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Las ventas totales pasan de \\(\\$310\\,\\text{M}\\) a \\(\\$320\\,\\text{M}\\)."
+      }
+    },
+    {
+      "id": 45,
+      "numero": 45,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "La gráfica muestra las ventas (en millones de pesos) de cuatro productos de una empresa\ndurante el primer y segundo semestre de un año.",
+        "Si la empresa quiere otorgar un bono al producto con mayor promedio de ventas entre los\ndos semestres, ¿cuál producto recibirá el bono?"
+      ],
+      "materiales": [
+        {
+          "tipo": "chartjs",
+          "id": "q45_grafico_1",
+          "descripcion": "Gráfico 1",
+          "requires": [
+            "chartjs"
+          ],
+          "config": {
+            "type": "bar",
+            "data": {
+              "labels": [
+                "Producto A",
+                "Producto B",
+                "Producto C",
+                "Producto D"
+              ],
+              "datasets": [
+                {
+                  "label": "Sem. 1",
+                  "data": [
+                    80.0,
+                    60.0,
+                    100.0,
+                    70.0
+                  ]
+                },
+                {
+                  "label": "Sem. 2",
+                  "data": [
+                    90.0,
+                    50.0,
+                    85.0,
+                    95.0
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "responsive": true,
+              "plugins": {
+                "legend": {
+                  "display": true
+                },
+                "title": {
+                  "display": true,
+                  "text": "Gráfico 1"
+                }
+              },
+              "scales": {
+                "x": {
+                  "title": {
+                    "display": false,
+                    "text": ""
+                  }
+                },
+                "y": {
+                  "beginAtZero": true,
+                  "title": {
+                    "display": true,
+                    "text": "Ventas (millones \\$)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pregunta": "Si la empresa quiere otorgar un bono al producto con mayor promedio de ventas entre los\ndos semestres, ¿cuál producto recibirá el bono?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Producto A, con promedio de \\(\\$85\\) M."
+        },
+        {
+          "id": "B",
+          "texto": "Producto C, con promedio de \\(\\$92\\){,}5 M."
+        },
+        {
+          "id": "C",
+          "texto": "Producto D, con promedio de \\(\\$82\\){,}5 M."
+        },
+        {
+          "id": "D",
+          "texto": "Producto B, porque tuvo las ventas más estables."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "El mayor promedio es el del Producto C: \\((100+85)/2=92{,}5\\,\\text{M}\\)."
+      }
+    },
+    {
+      "id": 46,
+      "numero": 46,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona deposita \\(\\$2.000.000\\) en una cuenta de ahorros que ofrece una tasa de\ninterés del \\(1{,}5\\,\\%\\) mensual compuesta. El monto acumulado después de \\(n\\) meses está\ndado por la fórmula:\n\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]",
+        "¿Cuánto dinero habrá acumulado en la cuenta al cabo de 6 meses? (Use \\((1{,}015)^6 \\approx 1{,}0934\\))",
+        "\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]"
+      ],
+      "materiales": [],
+      "pregunta": "¿Cuánto dinero habrá acumulado en la cuenta al cabo de 6 meses? (Use \\((1{,}015)^6 \\approx 1{,}0934\\))",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "\\(\\$2.090.000\\)"
+        },
+        {
+          "id": "B",
+          "texto": "\\(\\$2.180.000\\)"
+        },
+        {
+          "id": "C",
+          "texto": "\\(\\$2.186.800\\)"
+        },
+        {
+          "id": "D",
+          "texto": "\\(\\$2.200.000\\)"
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "\\(2.000.000\\times1{,}0934=2.186.800\\)."
+      }
+    },
+    {
+      "id": 47,
+      "numero": 47,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona deposita \\(\\$2.000.000\\) en una cuenta de ahorros que ofrece una tasa de\ninterés del \\(1{,}5\\,\\%\\) mensual compuesta. El monto acumulado después de \\(n\\) meses está\ndado por la fórmula:\n\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]",
+        "Un asesor financiero afirma que en 6 meses la persona habrá ganado exactamente\nel \\(9\\,\\%\\) de su inversión inicial. ¿Es correcta esta afirmación?",
+        "\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Un asesor financiero afirma que en 6 meses la persona habrá ganado exactamente\nel \\(9\\,\\%\\) de su inversión inicial. ¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque \\(6 \\times 1{,}5\\,\\% = 9\\,\\%\\)."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque con interés compuesto la ganancia es aproximadamente \\(9{,}34\\,\\%\\), no \\(9\\,\\%\\)."
+        },
+        {
+          "id": "C",
+          "texto": "Sí, porque la ganancia depende solo de la tasa mensual multiplicada por el tiempo."
+        },
+        {
+          "id": "D",
+          "texto": "No, porque la fórmula de interés compuesto no aplica para menos de 12 meses."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Con interés compuesto, la ganancia aproximada es \\(9{,}34\\%\\), no exactamente \\(9\\%\\)."
+      }
+    },
+    {
+      "id": 48,
+      "numero": 48,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona deposita \\(\\$2.000.000\\) en una cuenta de ahorros que ofrece una tasa de\ninterés del \\(1{,}5\\,\\%\\) mensual compuesta. El monto acumulado después de \\(n\\) meses está\ndado por la fórmula:\n\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]",
+        "Si la persona desea que su dinero se duplique (llegar a \\(\\$4.000.000\\)), y se sabe que\n\\((1{,}015)^{47} \\approx 2{,}013\\), ¿aproximadamente en cuántos meses ocurrirá esto?",
+        "\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Si la persona desea que su dinero se duplique (llegar a \\(\\$4.000.000\\)), y se sabe que\n\\((1{,}015)^{47} \\approx 2{,}013\\), ¿aproximadamente en cuántos meses ocurrirá esto?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Aproximadamente 40 meses."
+        },
+        {
+          "id": "B",
+          "texto": "Aproximadamente 47 meses."
+        },
+        {
+          "id": "C",
+          "texto": "Aproximadamente 53 meses."
+        },
+        {
+          "id": "D",
+          "texto": "Exactamente 50 meses."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "B",
+        "estado": "validada",
+        "explicacion": "Como \\((1{,}015)^{47}\\approx2{,}013\\), el dinero se duplica aproximadamente en \\(47\\) meses."
+      }
+    },
+    {
+      "id": 49,
+      "numero": 49,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona deposita \\(\\$2.000.000\\) en una cuenta de ahorros que ofrece una tasa de\ninterés del \\(1{,}5\\,\\%\\) mensual compuesta. El monto acumulado después de \\(n\\) meses está\ndado por la fórmula:\n\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]",
+        "En la figura se tienen dos postes verticales paralelos. El poste 1 mide 4 m y el poste 2\nmide 6 m. Ambos están sobre terreno plano y están separados 10 m entre sí.\nDesde la cima del poste 1 se traza un cable hasta la base del poste 2,\ny desde la cima del poste 2 se traza un cable hasta la base del poste 1.\nLos cables se cruzan a una cierta altura \\(h\\) sobre el suelo.\nUn estudiante afirma que \\(h\\) siempre es igual a la mitad del promedio de las alturas\nde los postes, es decir, \\(h = \\dfrac{4+6}{2} \\times \\dfrac{1}{2} = 2{,}5~\\text{m}\\).\n¿Es correcta esta afirmación?",
+        "\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]"
+      ],
+      "materiales": [],
+      "pregunta": "En la figura se tienen dos postes verticales paralelos. El poste 1 mide 4 m y el poste 2\nmide 6 m. Ambos están sobre terreno plano y están separados 10 m entre sí.\nDesde la cima del poste 1 se traza un cable hasta la base del poste 2,\ny desde la cima del poste 2 se traza un cable hasta la base del poste 1.\nLos cables se cruzan a una cierta altura \\(h\\) sobre el suelo.\nUn estudiante afirma que \\(h\\) siempre es igual a la mitad del promedio de las alturas\nde los postes, es decir, \\(h = \\dfrac{4+6}{2} \\times \\dfrac{1}{2} = 2{,}5~\\text{m}\\).\n¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque la altura de cruce siempre es el promedio aritmético de las alturas dividido en 2."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque la altura de cruce depende de la separación entre los postes."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque la altura de cruce es \\(h = \\dfrac{4 \\times 6}{4 + 6} = 2{,}4~\\text{m}\\) y no depende de la separación."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, pero solo cuando los postes tienen alturas con diferencia menor a 5 m."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "La altura de cruce es \\(h=\\frac{ab}{a+b}=\\frac{4\\cdot6}{4+6}=2{,}4\\,\\text{m}\\)."
+      }
+    },
+    {
+      "id": 50,
+      "numero": 50,
+      "tipo": "seleccion_multiple_unica",
+      "enunciado": [
+        "Una persona deposita \\(\\$2.000.000\\) en una cuenta de ahorros que ofrece una tasa de\ninterés del \\(1{,}5\\,\\%\\) mensual compuesta. El monto acumulado después de \\(n\\) meses está\ndado por la fórmula:\n\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]",
+        "Entre dos números racionales siempre existe otro número racional. Un estudiante usa\nesta propiedad y afirma que entre \\(\\dfrac{1}{3}\\) y \\(\\dfrac{1}{2}\\) hay exactamente\nun número racional: \\(\\dfrac{2}{5}\\).\n¿Es correcta esta afirmación?",
+        "\\[M(n) = 2.000.000 \\times (1{,}015)^n\\]"
+      ],
+      "materiales": [],
+      "pregunta": "Entre dos números racionales siempre existe otro número racional. Un estudiante usa\nesta propiedad y afirma que entre \\(\\dfrac{1}{3}\\) y \\(\\dfrac{1}{2}\\) hay exactamente\nun número racional: \\(\\dfrac{2}{5}\\).\n¿Es correcta esta afirmación?",
+      "opciones": [
+        {
+          "id": "A",
+          "texto": "Sí, porque \\(\\dfrac{2}{5}\\) está entre \\(\\dfrac{1}{3}\\) y \\(\\dfrac{1}{2}\\)."
+        },
+        {
+          "id": "B",
+          "texto": "No, porque \\(\\dfrac{2}{5}\\) no está entre \\(\\dfrac{1}{3}\\) y \\(\\dfrac{1}{2}\\)."
+        },
+        {
+          "id": "C",
+          "texto": "No, porque entre dos números racionales hay infinitos números racionales, no solo uno."
+        },
+        {
+          "id": "D",
+          "texto": "Sí, siempre que se busque la media aritmética de los dos números."
+        }
+      ],
+      "respuesta": {
+        "claveFuente": null,
+        "claveValidada": "C",
+        "estado": "validada",
+        "explicacion": "Entre dos números racionales existen infinitos números racionales."
+      }
+    }
+  ],
+  "resumenRespuestas": [
+    {
+      "id": 1,
+      "numero": 1,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 2,
+      "numero": 2,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 3,
+      "numero": 3,
+      "claveFuente": null,
+      "claveValidada": null,
+      "estado": "inconsistencia_detectada"
+    },
+    {
+      "id": 4,
+      "numero": 4,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada_con_observacion"
+    },
+    {
+      "id": 5,
+      "numero": 5,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 6,
+      "numero": 6,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 7,
+      "numero": 7,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 8,
+      "numero": 8,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 9,
+      "numero": 9,
+      "claveFuente": null,
+      "claveValidada": null,
+      "estado": "inconsistencia_detectada"
+    },
+    {
+      "id": 10,
+      "numero": 10,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 11,
+      "numero": 11,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 12,
+      "numero": 12,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 13,
+      "numero": 13,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 14,
+      "numero": 14,
+      "claveFuente": null,
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 15,
+      "numero": 15,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 16,
+      "numero": 16,
+      "claveFuente": null,
+      "claveValidada": "D",
+      "estado": "validada"
+    },
+    {
+      "id": 17,
+      "numero": 17,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 18,
+      "numero": 18,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 19,
+      "numero": 19,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 20,
+      "numero": 20,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 21,
+      "numero": 21,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 22,
+      "numero": 22,
+      "claveFuente": null,
+      "claveValidada": null,
+      "estado": "inconsistencia_detectada"
+    },
+    {
+      "id": 23,
+      "numero": 23,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 24,
+      "numero": 24,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 25,
+      "numero": 25,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 26,
+      "numero": 26,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 27,
+      "numero": 27,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 28,
+      "numero": 28,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 29,
+      "numero": 29,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 30,
+      "numero": 30,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada_con_observacion"
+    },
+    {
+      "id": 31,
+      "numero": 31,
+      "claveFuente": null,
+      "claveValidada": "A",
+      "estado": "validada"
+    },
+    {
+      "id": 32,
+      "numero": 32,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 33,
+      "numero": 33,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 34,
+      "numero": 34,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 35,
+      "numero": 35,
+      "claveFuente": null,
+      "claveValidada": "D",
+      "estado": "validada"
+    },
+    {
+      "id": 36,
+      "numero": 36,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 37,
+      "numero": 37,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 38,
+      "numero": 38,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 39,
+      "numero": 39,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 40,
+      "numero": 40,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 41,
+      "numero": 41,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 42,
+      "numero": 42,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 43,
+      "numero": 43,
+      "claveFuente": null,
+      "claveValidada": "D",
+      "estado": "validada"
+    },
+    {
+      "id": 44,
+      "numero": 44,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 45,
+      "numero": 45,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 46,
+      "numero": 46,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 47,
+      "numero": 47,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 48,
+      "numero": 48,
+      "claveFuente": null,
+      "claveValidada": "B",
+      "estado": "validada"
+    },
+    {
+      "id": 49,
+      "numero": 49,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    },
+    {
+      "id": 50,
+      "numero": 50,
+      "claveFuente": null,
+      "claveValidada": "C",
+      "estado": "validada"
+    }
+  ],
+  "observacionesValidacion": [
+    {
+      "id": 3,
+      "mensaje": "No hay opción exacta: con unidades vendidas, la ganancia sería \\(7.450\\times \\$33.000=\\$245.850.000\\). Con unidades producidas tampoco coincide con las opciones."
+    },
+    {
+      "id": 4,
+      "mensaje": "La opción B asume \\(48\\) cupos para estudiantes por bus: \\(4\\times48-180=12\\). Si los profesores ocupan cupo dentro de los \\(48\\), quedarían \\(8\\) cupos libres y no habría opción exacta."
+    },
+    {
+      "id": 9,
+      "mensaje": "Con la tasa promedio entre 2 p.m. y 6 p.m., la temperatura a las 8 p.m. sería \\(13{,}5\\,^\\circ\\text{C}\\); no aparece exactamente en las opciones."
+    },
+    {
+      "id": 22,
+      "mensaje": "A escala \\(1:50\\), \\(6\\,\\text{cm}\\times4\\,\\text{cm}\\) representan \\(3\\,\\text{m}\\times2\\,\\text{m}\\), área real \\(6\\,\\text{m}^2\\); no aparece en las opciones."
+    },
+    {
+      "id": 30,
+      "mensaje": "Menos de \\(2\\) horas corresponde a \\((20+50)/200=0{,}35\\). Las opciones B y D son idénticas."
+    }
+  ]
+}
